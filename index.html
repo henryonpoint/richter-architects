@@ -338,6 +338,13 @@ p{margin:0}
 @media (max-width:760px){.person{width:calc((100% - clamp(14px,1.8vw,28px)) / 2)}}
 .map-note{font-size:13px;color:var(--stone);max-width:34ch}
 
+@media (max-aspect-ratio:1/1){
+  .xp-fit .xp-img{background:var(--night)}
+  .xp-fit .xp-img img{object-fit:contain}
+  .xp-fit .xp-shade{display:none}
+  .xp-fit .xp-txt{place-content:end center;padding-bottom:calc(9vh + env(safe-area-inset-bottom,0px))}
+  .xp-fit .xp-txt h2{font-size:clamp(26px,7vw,40px)}
+}
 /* ---------- responsive ---------- */
 @media (max-width:1000px){
   .wgrid{grid-template-columns:repeat(2,1fr)}
@@ -760,7 +767,7 @@ function about(){
   <section class="statement" style="padding-top:clamp(40px,6vh,80px)">
     <p class="big words" data-fx="words">Richter Architects is a long-established practice. We believe quality design and lasting value are built through close relationships with our clients, across every building type and sector we serve.</p>
   </section>
-  <section class="xp" data-fx="expand" style="height:240vh">
+  <section class="xp xp-fit" data-fx="expand" style="height:240vh">
     <div class="xp-stick">
       <span class="xp-side l">Corpus Christi</span><span class="xp-side r">Texas</span>
       <div class="xp-img"><img src="${e['about-us/14'][0]}" alt="The Richter Architects team in the studio"></div>
