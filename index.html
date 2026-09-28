@@ -801,7 +801,7 @@ function awards(){
 
 function mapBlock(){
   const q='201+South+Upper+Broadway,+Corpus+Christi,+TX+78401';
-  const live = location.protocol==='file:' || /richterarchitects|localhost/.test(location.hostname);
+  const live = !/claude|anthropic/i.test(location.hostname);
   const card=`<div class="map-card" style="${live?'':'bottom:auto;top:clamp(20px,4vh,40px)'}"><span class="label dim">Richter Architects</span><p>201 South Upper Broadway, Corpus Christi, Texas 78401</p><a class="link" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Get directions <i></i></a></div>`;
   let inner;
   if (live) inner=`<iframe title="Map of 201 South Upper Broadway, Corpus Christi" src="https://www.google.com/maps?q=${q}&z=16&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
