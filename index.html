@@ -345,6 +345,15 @@ p{margin:0}
   .xp-fit .xp-txt{place-content:end center;padding-bottom:calc(9vh + env(safe-area-inset-bottom,0px))}
   .xp-fit .xp-txt h2{font-size:clamp(26px,7vw,40px)}
 }
+.studio{max-width:var(--wide);margin:0 auto;padding:clamp(40px,6vh,80px) var(--gutter) 0}
+.louver{display:flex;width:100%;overflow:hidden;position:relative}
+.louver>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s linear 1.4s}
+.louver.in>img{opacity:1}
+.louver i{position:relative}
+.figcap{text-align:center;margin-top:20px}
+.louver i{flex:1 1 0;margin-right:-1px;background-size:1200% 100%;background-repeat:no-repeat;clip-path:inset(0 50% 0 50%);transform:translateY(24px);opacity:.4;transition:clip-path 1.5s var(--ease),transform 1.6s var(--ease),opacity 1.2s var(--ease)}
+.louver.in i{clip-path:inset(0 0 0 0);transform:none;opacity:1;animation:slatOut .6s linear 2.3s forwards}
+@keyframes slatOut{to{opacity:0}}
 /* ---------- responsive ---------- */
 @media (max-width:1000px){
   .wgrid{grid-template-columns:repeat(2,1fr)}
@@ -767,13 +776,13 @@ function about(){
   <section class="statement" style="padding-top:clamp(40px,6vh,80px)">
     <p class="big words" data-fx="words">Richter Architects is a long-established practice. We believe quality design and lasting value are built through close relationships with our clients, across every building type and sector we serve.</p>
   </section>
-  <section class="xp xp-fit" data-fx="expand" style="height:240vh">
-    <div class="xp-stick">
-      <span class="xp-side l">Corpus Christi</span><span class="xp-side r">Texas</span>
-      <div class="xp-img"><img src="${e['about-us/14'][0]}" alt="The Richter Architects team in the studio"></div>
-      <div class="xp-shade"></div>
-      <div class="xp-txt"><p>The Studio</p><h2>201 South Upper Broadway</h2></div>
+  <section class="studio">
+    <div class="sec-head up" data-fx="up"><span class="label dim">The Studio</span><h2>201 South Upper Broadway</h2></div>
+    <div class="louver" data-fx="rv" role="img" aria-label="The Richter Architects team in the Corpus Christi studio" style="aspect-ratio:${e['about-us/14'][1]}/${e['about-us/14'][2]}">
+      <img src="${e['about-us/14'][0]}" alt="">
+      ${Array.from({length:12},(_,k)=>`<i style="background-image:url('${e['about-us/14'][0]}');background-position:${(k/11*100).toFixed(4)}% 50%;transition-delay:${(Math.abs(k-5.5)*0.07).toFixed(2)}s"></i>`).join('')}
     </div>
+    <p class="label dim figcap up" data-fx="up">Richter Architects, Corpus Christi, Texas</p>
   </section>
   <section class="services">
     <div class="sec-head up" data-fx="up"><span class="label dim">Services</span></div>
