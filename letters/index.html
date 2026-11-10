@@ -241,7 +241,7 @@ function vHome(){
   const rows=innerWidth<821?['RICH','TER','ARCHI','TECTS']:['RICHTER','ARCHITECTS'];
   let k=0;
   return `<section class="home"><div class="wall" id="wall" aria-label="Richter Architects. Each letter opens a project.">${rows.map(r=>`<div class="row">${[...r].map(ch=>{const p=P[k%P.length],i=k++;return `<a class="L" href="#${p.slug}" data-letter="${i}" aria-label="${ch}. ${esc(p.name)}, ${esc(p.place)}"><b style="--i:${i};background-image:url(${cover(p)})">${ch}</b></a>`}).join('')}</div>`).join('')}</div>
-  <div class="cap" id="cap" aria-live="polite"><span class="label mute">Architecture, master planning and interiors. Corpus Christi, Texas.</span><span class="label">${TOUCH?'Tap a letter':'Each letter is a window. Move across them.'}</span></div></section>`;
+  <div class="cap" id="cap" aria-live="polite"><span class="label mute">Architecture, master planning and interiors. Corpus Christi, Texas.</span><span class="label">${TOUCH?'Tap a letter':'Each letter is a window onto a building.'}</span></div></section>`;
 }
 function vWork(){
   return `<section class="work"><div class="chips" id="chips"><button data-s="-1" aria-pressed="true">All ${P.length}</button>${SECTORS.map((s,i)=>{const n=P.filter(p=>p.sectors.includes(i)).length;return n?`<button data-s="${i}" aria-pressed="false">${esc(s)} ${n}</button>`:''}).join('')}</div>
@@ -333,15 +333,21 @@ function letter(i,mode){const w=$('#wall');if(!w)return;act=i;$$('.L',w).forEach
   w.classList.toggle('flood',mode==='flood');w.classList.toggle('glow',mode==='glow');capFor(i);
   mode==='flood'?floodOn(hero(P[i%P.length])):floodOff()}
 function homeInit(){
-  const w=$('#wall'); requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add('in')));
+  const w=$('#wall'), cap0=$('#cap').innerHTML; requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add('in')));
   const n=$$('.L',w).length; let c=-1; hovering=false; act=-1;
-  clearInterval(cyc); if(!RM) cyc=setInterval(()=>{if(hovering||!$('#wall'))return;c=(c+1)%n;letter(c,'glow')},2600);
+  const REST=5000, HOLD=3800;
+  const rest=()=>{act=-1;w.classList.remove('flood','glow');$$('.L',w).forEach(l=>l.classList.remove('on'));floodOff();$('#cap').innerHTML=cap0};
+  const next=()=>{if(hovering||!w.isConnected)return;c++;if(c>=n){c=-1;rest();cyc=setTimeout(next,REST);return}letter(c,'flood');cyc=setTimeout(next,HOLD)};
+  const resume=ms=>{clearTimeout(cyc);if(!RM)cyc=setTimeout(()=>{hovering=false;next()},ms)};
+  const take=i=>{hovering=true;clearTimeout(cyc);c=i;letter(i,'flood')};
+  clearTimeout(cyc); if(!RM) cyc=setTimeout(next,REST+900);
   $$('.L',w).forEach(l=>{const i=+l.dataset.letter;
-    l.addEventListener('mouseenter',()=>{if(TOUCH)return;hovering=true;letter(i,'flood')});
-    l.addEventListener('focus',()=>{hovering=true;letter(i,'flood')});
-    l.addEventListener('click',e=>{e.preventDefault();if(TOUCH&&!(hovering&&act===i)){hovering=true;letter(i,'flood');return}go(P[i%P.length].slug)});
+    l.addEventListener('mouseenter',()=>{if(!TOUCH)take(i)});
+    l.addEventListener('focus',()=>take(i));
+    l.addEventListener('click',e=>{e.preventDefault();if(TOUCH&&act!==i){take(i);resume(7000);return}go(P[i%P.length].slug)});
   });
-  w.addEventListener('mouseleave',()=>{if(TOUCH)return;hovering=false;w.classList.remove('flood');floodOff()});
+  w.addEventListener('mouseleave',()=>{if(TOUCH)return;resume(1400)});
+  w.addEventListener('focusout',e=>{if(!w.contains(e.relatedTarget))resume(1400)});
 }
 
 /* ---------- work behaviour ---------- */
@@ -380,7 +386,7 @@ let view=null, busy=false;
 const VIEWS={home:vHome,work:vWork,studio:vStudio,recognition:vRecognition,contact:vContact};
 function render(name){
   const p=bySlug[name]; if(!p&&!VIEWS[name]) name='home';
-  view=name; clearInterval(cyc); walk=null; tgt=null;
+  view=name; clearTimeout(cyc); walk=null; tgt=null;
   flood.classList.remove('on'); document.body.dataset.tone=name==='contact'?'red':'light';
   main.innerHTML=p?vProject(p):VIEWS[name]();
   window.scrollTo(0,0); prog.style.transform='scaleX(0)';
