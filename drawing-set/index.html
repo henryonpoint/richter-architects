@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Richter Architects</title>
+<meta name="description" content="Richter Architects, Corpus Christi, Texas. Architecture, master planning, programming and interior design.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: the site is a drawing set. Six sheets scroll as one document, a title block
+   pinned to the bottom edge is the navigation, and every project opens as its own sheet. */
+:root{
+  color-scheme:light;
+  --paper:#ffffff;
+  --vellum:#f4f2ee;
+  --ink:#141312;
+  --mute:#77726c;
+  --hair:#dedad4;
+  --red:#fe0000;
+  --display:"Jost","Futura","Century Gothic","Avenir Next",sans-serif;
+  --gut:clamp(18px,3.4vw,56px);
+  --tb:64px;      /* title block */
+  --top:34px;     /* ruler bar */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --inout:cubic-bezier(.76,0,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;background:var(--paper);color:var(--ink)}
+body{font-family:var(--display);font-weight:300;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding:var(--top) 0 var(--tb)}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+h1,h2,h3,p,figure,ul,ol,dl,dd,dt{margin:0;padding:0}
+ul,ol{list-style:none}
+h1,h2,h3{font-weight:200;line-height:1.04;letter-spacing:-.02em;text-wrap:balance}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.t{font-size:10.5px;font-weight:400;letter-spacing:.22em;text-transform:uppercase;line-height:1.5}
+.mute{color:var(--mute)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- ruler bar (top) ---------- */
+.ruler{position:fixed;inset:0 0 auto 0;height:var(--top);z-index:70;background:var(--paper);display:flex;align-items:center;justify-content:space-between;padding-inline:var(--gut);border-bottom:1px solid var(--hair)}
+.ruler-line{position:absolute;left:0;right:0;bottom:-1px;height:1px}
+.ruler-line i{position:absolute;bottom:0;width:1px;height:7px;background:var(--ink);opacity:.5}
+.ruler-line b{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--red);transform-origin:left;transform:scaleX(0)}
+.ruler button{text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:4px}
+
+/* ---------- title block (bottom) ---------- */
+.tb{position:fixed;inset:auto 0 0 0;height:var(--tb);z-index:80;background:var(--paper);border-top:1px solid var(--ink);display:grid;grid-template-columns:auto 118px minmax(0,1.2fr) minmax(0,1fr) auto}
+.tb>*{border-left:1px solid var(--ink);padding:0 18px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.tb>*:first-child{border-left:0;padding:0}
+.tb-logo{background:var(--red)}
+.tb-logo img{height:var(--tb);width:auto}
+.tb .k{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);line-height:1.3}
+.tb .v{font-size:17px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb .v.sheet{font-size:22px;font-weight:300}
+.tb-nav{flex-direction:row!important;align-items:stretch;padding:0!important}
+.tb-nav a,.tb-nav button{display:flex;align-items:center;padding:0 16px;border-left:1px solid var(--hair);position:relative;transition:background .35s,color .35s;white-space:nowrap}
+.tb-nav a:first-child,.tb-nav button:first-child{border-left:0}
+.tb-nav a:hover,.tb-nav button:hover,.tb-nav a.on{background:var(--ink);color:#fff}
+.tb-nav.pjn,.sheet-open .tb-nav.set{display:none!important}
+.sheet-open .tb-nav.pjn{display:flex!important}
+.tb-nav .x{background:var(--red);color:#fff}
+.tb-menu{display:none!important}
+
+/* ---------- sheet scaffolding ---------- */
+.sh{position:relative;border-top:1px solid var(--ink)}
+.sh:first-child{border-top:0}
+.sh-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;padding:clamp(60px,8vw,120px) var(--gut) clamp(28px,3.5vw,54px)}
+.sh-head h2{font-size:clamp(44px,8.6vw,150px);text-align:center}
+.sh-head .r{text-align:right}
+.dim{position:relative;height:13px;margin:0 var(--gut)}
+.dim::before{content:"";position:absolute;left:0;right:0;top:6px;height:1px;background:var(--ink);transform-origin:center}
+.dim::after{content:"";position:absolute;inset:0;border-inline:1px solid var(--ink)}
+.m .dim::before{transform:scaleX(0);transition:transform 1.4s var(--inout)}
+.m .dim.in::before{transform:none}
+.lines>span{display:block;overflow:hidden}
+.lines>span>i{display:block;font-style:normal}
+.m .lines>span>i{transform:translateY(105%);transition:transform 1.2s var(--ease)}
+.m .lines.in>span>i{transform:none}
+.m .rv{opacity:0;transform:translateY(26px);transition:opacity 1s var(--ease),transform 1s var(--ease);transition-delay:var(--d,0s)}
+.m .rv.in{opacity:1;transform:none}
+
+/* ---------- A-000 cover: louver wall ---------- */
+.cover{height:calc(100vh - var(--top) - var(--tb));height:calc(100svh - var(--top) - var(--tb));min-height:420px;display:flex;background:#0d0d0c;overflow:hidden;--open:36vw}
+.slat{position:relative;flex:1 1 0;min-width:0;overflow:hidden;border-left:1px solid rgba(255,255,255,.28);color:#fff;transition:flex-grow .9s var(--inout)}
+.slat:first-child{border-left:0}
+.slat.on{flex-grow:9}
+.slat img{position:absolute;top:0;left:50%;height:100%;width:var(--open);max-width:none;object-fit:cover;transform:translateX(-50%) scale(1.12);filter:saturate(.25) brightness(.72);transition:filter .9s var(--ease),transform 1.6s var(--ease)}
+.slat.on img{filter:none;transform:translateX(-50%) scale(1)}
+.m .slat{clip-path:inset(100% 0 0 0);animation:rise 1.2s var(--inout) forwards;animation-delay:calc(var(--i)*55ms + .15s)}
+@keyframes rise{to{clip-path:inset(0)}}
+.slat .no{position:absolute;left:0;right:0;bottom:16px;text-align:center;transition:opacity .4s}
+.slat.on .no{opacity:0}
+.slat .cap{position:absolute;left:0;right:0;bottom:0;padding:120px 26px 26px;background:linear-gradient(0deg,rgba(0,0,0,.72),rgba(0,0,0,0));opacity:0;transform:translateY(14px);transition:opacity .5s,transform .8s var(--ease);width:var(--open);left:50%;margin-left:calc(var(--open)/-2);text-align:center}
+.slat.on .cap{opacity:1;transform:none;transition-delay:.35s}
+.slat .cap h3{font-size:clamp(24px,2.7vw,46px);margin:10px 0 12px}
+.slat .cap .go{display:inline-flex;align-items:center;gap:12px}
+.slat .cap .go::before,.slat .cap .go::after{content:"";width:26px;height:1px;background:var(--red)}
+
+/* ---------- A-001 location plan ---------- */
+.plan{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);border-top:1px solid var(--hair)}
+.map{position:relative;border-right:1px solid var(--hair);background:var(--vellum);cursor:crosshair;overflow:hidden}
+.map svg{display:block;width:100%;height:auto}
+.map .grat{stroke:#cfcac2;stroke-width:1}
+.map .glab{font-size:13px;fill:var(--mute);letter-spacing:.12em}
+.map .tx{fill:#fff;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:7 5}
+.map .ray{stroke:var(--red);stroke-width:1;opacity:.55}
+.m .map .ray{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset 1.8s var(--inout);transition-delay:var(--d)}
+.m .map.in .ray{stroke-dashoffset:0}
+.pt{cursor:pointer}
+.pt circle.dot{fill:var(--ink);transition:fill .3s}
+.pt circle.ring{fill:none;stroke:var(--ink);stroke-width:1;opacity:.35;transition:all .5s var(--ease)}
+.pt text{font-size:15px;fill:var(--ink);letter-spacing:.02em}
+.pt:hover circle.dot,.pt.on circle.dot{fill:var(--red)}
+.pt.on circle.ring{stroke:var(--red);opacity:1;stroke-width:1.5}
+.pt.on text{font-weight:500}
+.inset{fill:#fff;stroke:var(--ink);stroke-width:1}
+.cross{position:absolute;pointer-events:none;background:var(--red);opacity:0;transition:opacity .3s}
+.cross.h{left:0;right:0;height:1px;top:var(--cy,0)}
+.cross.v{top:0;bottom:0;width:1px;left:var(--cx,0)}
+.map:hover .cross{opacity:.5}
+.readout{position:absolute;left:14px;top:12px}
+.north{position:absolute;right:16px;top:12px;text-align:center}
+.north::before{content:"";display:block;width:1px;height:34px;background:var(--ink);margin:0 auto 4px}
+.place{padding:clamp(22px,2.6vw,44px);display:flex;flex-direction:column;gap:22px}
+.place h3{font-size:clamp(32px,3.6vw,60px)}
+.place ul{border-top:1px solid var(--hair)}
+.place li a{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--hair);transition:padding .4s var(--ease)}
+.place li a:hover{padding-left:10px}
+.place li img{width:96px;height:64px;object-fit:cover}
+.place li b{font-weight:300;font-size:19px;line-height:1.25;display:block}
+
+/* ---------- A-002 schedule ---------- */
+.filters{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:0 var(--gut) 34px}
+.filters button{border:1px solid var(--hair);padding:9px 16px;transition:all .3s}
+.filters button:hover{border-color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.sched{margin:0 var(--gut);border-top:1px solid var(--ink)}
+.row{display:grid;grid-template-columns:70px minmax(0,2.3fr) minmax(0,1.2fr) minmax(0,1.4fr) minmax(0,1.6fr) 70px;gap:20px;align-items:baseline;padding:17px 0;border-bottom:1px solid var(--hair);position:relative;transition:background .3s}
+.row.hd{padding:10px 0;border-bottom:1px solid var(--ink)}
+.row h3{font-size:clamp(20px,2vw,31px);letter-spacing:-.01em;line-height:1.15}
+.row .e{text-align:right}
+.row:not(.hd)::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);transform:scaleY(0);transition:transform .35s var(--ease)}
+.row:not(.hd):hover{background:var(--vellum)}
+.row:not(.hd):hover::before{transform:scaleY(1)}
+.row:not(.hd):hover h3{transform:translateX(14px)}
+.row h3{transition:transform .45s var(--ease)}
+.peek{position:fixed;left:0;top:0;z-index:60;width:min(28vw,400px);aspect-ratio:3/2;pointer-events:none;overflow:hidden;opacity:0;transform:translate(var(--x,0),var(--y,0)) scale(.9);transition:opacity .3s,transform .45s var(--ease);margin:-150px 0 0 26px;box-shadow:0 20px 50px rgba(0,0,0,.18)}
+.peek.on{opacity:1;transform:translate(var(--x,0),var(--y,0)) scale(1)}
+.peek img{width:100%;height:100%;object-fit:cover}
+.pad-b{padding-bottom:clamp(60px,8vw,120px)}
+
+/* ---------- A-003 recognition skyline ---------- */
+.sky{margin:0 var(--gut);height:clamp(200px,34vw,420px);display:flex;align-items:flex-end;gap:clamp(2px,.45vw,7px);border-bottom:1px solid var(--ink)}
+.sky button{flex:1 1 0;height:100%;display:flex;align-items:flex-end;position:relative}
+.sky button i{display:block;width:100%;height:var(--h);min-height:1px;background:var(--ink);transform-origin:bottom;transition:background .3s,transform 1.1s var(--inout);transition-delay:0s,calc(var(--i)*18ms)}
+.m .sky button i{transform:scaleY(0)}
+.m .sky.in button i{transform:none}
+.sky button:hover i{background:var(--mute)}
+.sky button[aria-pressed="true"] i{background:var(--red)}
+.sky button.zero i{background:var(--hair)}
+.sky-ax{margin:8px var(--gut) 0;display:flex;justify-content:space-between}
+.yearbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,5vw,90px);padding:clamp(40px,5vw,80px) var(--gut) 0;align-items:start}
+.yearbox .y{font-size:clamp(90px,17vw,300px);font-weight:200;line-height:.82;letter-spacing:-.05em}
+.yearbox li{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;padding:13px 0;border-bottom:1px solid var(--hair)}
+.yearbox li:first-child{border-top:1px solid var(--ink)}
+.yearbox li span:last-child{color:var(--mute)}
+.yearbox a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--red);text-underline-offset:4px}
+
+/* ---------- A-004 practice ---------- */
+.creed{padding:0 var(--gut);text-align:center}
+.creed p.big{font-size:clamp(28px,4.6vw,78px);font-weight:200;line-height:1.1;letter-spacing:-.02em;max-width:18ch;margin-inline:auto;text-wrap:balance}
+.creed p.big .w{color:#cfcac2;transition:color .5s}
+.creed p.big .w.lit{color:var(--ink)}
+.creed p.sm{max-width:58ch;margin:38px auto 0;color:var(--mute);font-size:19px}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);margin:clamp(50px,7vw,110px) var(--gut) 0;border:1px solid var(--ink)}
+.tri>div{padding:clamp(24px,3vw,48px);border-left:1px solid var(--ink)}
+.tri>div:first-child{border-left:0}
+.tri h3{font-size:clamp(24px,2.5vw,40px);margin:14px 0 14px}
+.tri p{color:var(--mute)}
+.split{display:grid;grid-template-columns:1fr 1fr;margin:clamp(50px,7vw,110px) var(--gut) 0;gap:clamp(24px,4vw,70px);align-items:center}
+.split .ph{aspect-ratio:4/3;overflow:hidden}
+.split .ph img{width:100%;height:100%;object-fit:cover}
+.svc li{display:grid;grid-template-columns:54px 1fr;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--hair);font-size:clamp(22px,2.5vw,38px);font-weight:200;line-height:1.2}
+.svc li:first-child{border-top:1px solid var(--ink)}
+.people{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--ink);border:1px solid var(--ink);margin:clamp(50px,7vw,110px) var(--gut) 0}
+.people figure{background:var(--paper)}
+.people .ph{aspect-ratio:4/5;overflow:hidden}
+.people img{width:100%;height:100%;object-fit:cover;filter:grayscale(1);transition:filter .7s,transform 1.4s var(--ease)}
+.people figure:hover img{filter:none;transform:scale(1.04)}
+.people figcaption{padding:14px 16px 18px}
+.people h3{font-size:19px;font-weight:400;letter-spacing:0;margin-bottom:3px}
+.prin{margin:34px var(--gut) 0;display:flex;flex-wrap:wrap;gap:6px 40px;justify-content:center;font-size:clamp(18px,1.8vw,26px);font-weight:200}
+.prin span span{font-size:10.5px;letter-spacing:.2em;color:var(--mute);margin-left:8px}
+.boards{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,32px);margin:0 var(--gut)}
+.boards .ph{aspect-ratio:16/9;overflow:hidden}
+.boards img{width:100%;height:100%;object-fit:cover;transition:transform 1.4s var(--ease)}
+.boards figure:hover img{transform:scale(1.05)}
+.boards figcaption{padding-top:12px;font-size:19px}
+.sub{padding:clamp(60px,8vw,120px) var(--gut) 22px;display:flex;justify-content:space-between;align-items:baseline;gap:20px}
+.sub h3{font-size:clamp(28px,3.4vw,54px)}
+
+/* ---------- A-005 contact ---------- */
+.contact{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--hair)}
+.contact .ph{min-height:70vh;overflow:hidden;position:relative}
+.contact .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.contact .in{display:flex;flex-direction:column;justify-content:center;gap:30px;padding:clamp(40px,6vw,100px) var(--gut)}
+.contact .big{font-size:clamp(28px,3.4vw,56px);font-weight:200;line-height:1.14;letter-spacing:-.015em}
+.contact .tel{font-size:clamp(40px,6vw,104px);font-weight:200;line-height:1;letter-spacing:-.03em}
+.btn{display:inline-flex;align-self:flex-start;padding:15px 24px;border:1px solid var(--ink);transition:all .4s var(--ease)}
+.btn:hover{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ---------- project sheet (overlay) ---------- */
+.pj{position:fixed;inset:var(--top) 0 var(--tb) 0;z-index:60;background:var(--paper);overflow-y:auto;overscroll-behavior:contain;transform:translateY(102%);visibility:hidden;transition:transform .85s var(--inout),visibility 0s .85s}
+.pj.open{transform:none;visibility:visible;transition:transform .85s var(--inout)}
+.nomotion .pj{transition:none}
+.pj-hero{position:sticky;top:0;height:calc(100vh - var(--top) - var(--tb));height:calc(100svh - var(--top) - var(--tb));overflow:hidden;background:#111;color:#fff;clip-path:inset(calc(var(--k,0)*7vh) calc(var(--k,0)*7vw));z-index:0}
+.pj-hero img{width:100%;height:100%;object-fit:cover;transform:scale(calc(1.08 - var(--k,0)*.08))}
+.pj-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.6),rgba(0,0,0,0) 55%)}
+.pj-ttl{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:0 var(--gut) 44px;text-align:center;opacity:calc(1 - var(--k,0)*1.6)}
+.pj-ttl h1{font-size:clamp(34px,6.6vw,116px);max-width:17ch;margin:14px auto 0}
+.pj-body{position:relative;z-index:1;background:var(--paper);border-top:1px solid var(--ink)}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--ink)}
+.facts>div{padding:20px var(--gut);border-left:1px solid var(--ink)}
+.facts>div:first-child{border-left:0}
+.facts dd{font-size:18px;line-height:1.35;margin-top:6px}
+.essay{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:clamp(30px,6vw,110px);padding:clamp(60px,8vw,130px) var(--gut)}
+.essay .lead{font-size:clamp(24px,3vw,46px);font-weight:200;line-height:1.22;letter-spacing:-.012em}
+.essay .more{margin-top:30px;color:var(--mute);font-size:19px;max-width:60ch}
+.essay li{display:flex;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid var(--hair)}
+.essay li:first-child{border-top:1px solid var(--ink)}
+.essay li span:last-child{color:var(--mute)}
+.jg{display:flex;flex-direction:column;gap:clamp(8px,1vw,16px);padding:0 var(--gut)}
+.jr{display:flex;gap:clamp(8px,1vw,16px);margin-inline:auto;width:100%}
+.jr button{display:block;overflow:hidden;cursor:zoom-in;background:var(--vellum)}
+.jr img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease)}
+.jr button:hover img{transform:scale(1.04)}
+.credit{padding:22px var(--gut) 0;color:var(--mute);font-size:14px;text-align:center}
+.nextp{display:grid;grid-template-columns:1fr 1fr;margin-top:clamp(60px,8vw,120px);border-top:1px solid var(--ink)}
+.nextp a{padding:clamp(30px,4vw,64px) var(--gut);display:flex;flex-direction:column;gap:10px;transition:background .4s,color .4s}
+.nextp a+a{border-left:1px solid var(--ink);text-align:right}
+.nextp a:hover{background:var(--ink);color:#fff}
+.nextp b{font-weight:200;font-size:clamp(22px,2.8vw,44px);line-height:1.1;letter-spacing:-.015em}
+
+/* ---------- lightbox ---------- */
+.lb{position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;grid-template-rows:auto 1fr auto;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.lb.open{opacity:1;visibility:visible}
+.lb-bar{display:flex;align-items:center;justify-content:space-between;padding:16px var(--gut)}
+.lb-bar.c{justify-content:center;gap:30px}
+.lb-img{position:relative;min-height:0}
+.lb-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding-inline:var(--gut);transition:opacity .3s}
+.lb button{padding:8px 4px}
+.lb button:hover{color:var(--red)}
+
+/* ---------- sheet list (mobile menu) ---------- */
+.list{position:fixed;inset:var(--top) 0 var(--tb) 0;z-index:75;background:var(--paper);display:flex;flex-direction:column;justify-content:center;padding:0 var(--gut);clip-path:inset(100% 0 0 0);visibility:hidden;transition:clip-path .6s var(--inout),visibility 0s .6s}
+.list.open{clip-path:inset(0);visibility:visible;transition:clip-path .6s var(--inout)}
+.list a{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--hair);font-size:34px;font-weight:200}
+
+@media (max-width:1100px){
+  .tb{grid-template-columns:auto 104px minmax(0,1fr) auto}
+  .tb-loc{display:none!important}
+  .row{grid-template-columns:50px minmax(0,2fr) minmax(0,1fr) 60px}
+  .row .c4,.row .c5{display:none}
+}
+@media (max-width:820px){
+  :root{--tb:56px}
+  body{font-size:16px}
+  .ruler .hide-s{display:none}
+  .tb{grid-template-columns:auto 84px minmax(0,1fr) auto}
+  .tb>*{padding:0 12px}
+  .tb .v{font-size:14px}.tb .v.sheet{font-size:17px}
+  .tb-nav.set{display:none!important}
+  .tb-menu{display:flex!important;align-items:center;justify-content:center;background:var(--ink);color:#fff}
+  .sheet-open .tb-menu{display:none!important}
+  .tb-nav.pjn a:not(.x){display:none}
+  .cover{flex-direction:column;--open:100vw}
+  .slat{border-left:0;border-top:1px solid rgba(255,255,255,.28)}
+  .slat img{left:0;top:50%;width:100%;height:46vh;transform:translateY(-50%) scale(1.1)}
+  .slat.on img{transform:translateY(-50%)}
+  .slat .no{left:auto;right:12px;bottom:auto;top:50%;transform:translateY(-50%)}
+  .slat .cap{width:100%;left:0;margin:0;padding:60px 16px 14px}
+  .m .slat{clip-path:inset(0 100% 0 0)}
+  .sh-head{grid-template-columns:1fr;text-align:center}
+  .sh-head .r{text-align:center}
+  .plan,.yearbox,.split,.contact,.essay{grid-template-columns:1fr}
+  .map{border-right:0;border-bottom:1px solid var(--hair)}
+  .map .glab{font-size:22px}.pt text{font-size:26px}
+  .tri{grid-template-columns:1fr}.tri>div{border-left:0;border-top:1px solid var(--ink)}.tri>div:first-child{border-top:0}
+  .people{grid-template-columns:1fr 1fr}
+  .boards{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts>div:nth-child(3){border-left:0}
+  .facts>div:nth-child(n+3){border-top:1px solid var(--ink)}
+  .yearbox li{grid-template-columns:1fr;gap:2px}
+  .contact .ph{min-height:44vh;order:-1}
+  .nextp{grid-template-columns:1fr}.nextp a+a{border-left:0;border-top:1px solid var(--ink);text-align:left}
+  .peek,.cross{display:none}
+}
+@media (hover:none){.peek{display:none}}
+</style>
+</head>
+<body>
+
+<div class="ruler t">
+  <span>Richter Architects<span class="hide-s mute"> · Corpus Christi, Texas</span></span>
+  <span class="hide-s mute num" id="rulerNote"></span>
+  <button id="motionBtn" aria-pressed="true">Motion on</button>
+  <div class="ruler-line" id="rulerLine"><b id="rulerB"></b></div>
+</div>
+
+<main id="set"></main>
+
+<div class="pj" id="pj" role="dialog" aria-modal="true" aria-label="Project sheet" tabindex="-1"></div>
+
+<nav class="list" id="list" aria-label="Sheets"></nav>
+
+<footer class="tb" id="tb">
+  <a class="tb-logo" href="#cover" aria-label="Richter Architects, cover sheet"><img src="../img/logo.png" alt="Richter Architects" width="800" height="200"></a>
+  <div><span class="k">Sheet</span><span class="v sheet num" id="tbNo">A-000</span></div>
+  <div><span class="k" id="tbK">Title</span><span class="v" id="tbTitle">Cover</span></div>
+  <div class="tb-loc"><span class="k">Location</span><span class="v num" id="tbLoc">27.80° N, 97.40° W</span></div>
+  <div class="tb-nav set t" id="tbNav"></div>
+  <div class="tb-nav pjn t"><a href="#" id="pjPrev">Previous</a><a href="#" id="pjNext">Next</a><a class="x" href="#work" id="pjClose">Close sheet</a></div>
+  <button class="tb-menu t" id="tbMenu" aria-expanded="false" aria-controls="list">Sheets</button>
+</footer>
+
+<div class="peek" id="peek" aria-hidden="true"><img alt="" id="peekI"></div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <div class="lb-bar t"><span id="lbT"></span><button class="t" id="lbX">Close</button></div>
+  <div class="lb-img"><img id="lbI" alt=""></div>
+  <div class="lb-bar c t"><button class="t" id="lbP">Previous</button><span class="num" id="lbN"></span><button class="t" id="lbF">Next</button></div>
+</div>
+
+<script>
+const SECTORS = ["Government / Institutional","Museum / Visitor","Educational","Commercial / Industrial","Residential","Religious"];
+
+const PROJECTS = [
+ {slug:"columbus-lpoe", name:"US Land Port of Entry", place:"Columbus, New Mexico", client:"U.S. General Services Administration", sectors:[0],
+  awards:["AIA COTE Top Ten Award, 2020","GSA Honor Award for Architecture, 2022","GSA Honor Award for Landscape Architecture, 2022","Texas Society of Architects Design Award, 2020","AIA New Mexico Honor Award, 2020","Brick in Architecture Best in Class, 2020"],
+  credit:"Photography by Robert Reck and David Richter",
+  text:["A port of entry from Mexico to a small New Mexican village made famous by Pancho Villa's incursion more than a century ago. The entirely new facility echoes the traditional colors of New Mexico and the Chihuahuan desert.","Interiors are flooded with diffused north light from clerestories, and terraced landscaping that captures and holds rainwater gives the port a park-like atmosphere."]},
+ {slug:"manila-american-cemetery-visitor-center", name:"Manila American Cemetery Visitor Center", place:"Manila, Philippines", client:"American Battle Monuments Commission", sectors:[1],
+  awards:["AIA International Region Award, 2019","AIA Corpus Christi Award of Merit, 2022"],
+  text:["Located in the heart of Manila at the historic Manila American Cemetery, the visitor center provides historic orientation to visitors from around the world and amplifies the message implicit in the largest American military cemetery on foreign soil.","Set within dense tropical landscape, the building defers to the existing memorial and directs the visitor's attention to the vast arrays of headstones that are the true centerpiece of the site."]},
+ {slug:"port-of-corpus-christi", name:"Port of Corpus Christi Administration Building", place:"Corpus Christi, Texas", client:"Port of Corpus Christi", sectors:[0,3],
+  awards:["Brick in Architecture Bronze Award, Commercial, 2021"],
+  text:["The new administration building for the port authority sits at the mouth of the inner harbor. The design explores the duality and dialogue between land and sea.","Brick and concrete on the landside meet glass on the waterside, and carefully framed views register the Port's role as the connection between the two."]},
+ {slug:"del-mar-academic-and-music-2", name:"Del Mar College General Academic and Music Building II", place:"Corpus Christi, Texas", client:"Del Mar College", sectors:[2],
+  awards:["AIA Corpus Christi Mayor's Choice Award, 2022","AIA Corpus Christi Award of Merit, 2022","Brick in Architecture Bronze Award, 2022","Brick in Architecture Bronze Award, Educational, 2021"],
+  credit:"Design Architect: Richter Architects. Associate Architect: BRW Architects",
+  facts:"130,000 square feet",
+  text:["Phase II completes the new facilities for the Music Department begun in Phase I, adding rehearsal rooms, faculty studios, practice rooms and music classrooms, along with academic space for Math, English, Social Sciences, Speech and Philosophy.","The building is a cluster of volumes linked on upper floors by glazed bridges. Between them, wind and sun protected courtyards, gardens, amphitheaters and loggias connect teaching spaces and faculty offices with daylight and views."]},
+ {slug:"del-mar-music-1", name:"Del Mar College Music Building, Phase I", place:"Corpus Christi, Texas", client:"Del Mar College", sectors:[2],
+  awards:["AIA Corpus Christi Merit Award, 2016"],
+  text:["An addition and renovation for a community college music program with a nationally recognized reputation, including two recording studios, a rehearsal hall, music laboratories and classrooms.","The campus's traditional buff brick and pink cast stone are joined by a curved, self-shading curtain wall on the east. Its concave face serves as both acoustic and visual backdrop for an amphitheater in the east courtyard."]},
+ {slug:"west-pecos-safety-rest-area", name:"TxDOT West Pecos County Safety Rest Area", place:"Fort Stockton, Texas", client:"Texas Department of Transportation", sectors:[1,0],
+  awards:["AIA Corpus Christi Award of Excellence, 2019","AIA Corpus Christi People's Choice Award, 2019","Korean Institute of Architects, 100 Architects of the Year, 2018"],
+  text:["An interstate rest area on I-10 at the eastern approach to the Davis Mountains, drawing on the geology, ecology and cultural history of the West Texas desert.","Restrooms, exhibits, picnic areas, play spaces and nature trails give travelers real relief from the road. The land itself, its wide sky and exposed strata, is the core inspiration, captured in both intimate details and distant horizons."]},
+ {slug:"national-museum-of-the-pacific-war", name:"National Museum of the Pacific War", place:"Fredericksburg, Texas", client:"The Admiral Nimitz Foundation and the Texas Historical Commission", sectors:[1],
+  awards:["AIA Corpus Christi Honor Award, 2009"],
+  text:["An addition and renovation creating the George H.W. Bush Gallery, composed as a series of simple one-story stone facades linked by courtyards and low stone walls that respect the historic district.","An outer layer is scaled to the neighborhood streetscape, while an inner layer steps up to express the museum's national significance. Materials and details recall both World War II military construction and Texas Hill Country building traditions."]},
+ {slug:"pacific-combat-zone", name:"Pacific Combat Zone, Phase I", place:"Fredericksburg, Texas", client:"The Admiral Nimitz Foundation and the Texas Historical Commission", sectors:[1],
+  awards:["AIA Corpus Christi Honor Award, 2016"],
+  text:["Spanning half a city block, the Pacific Combat Zone houses more than a dozen operational World War II combat vehicles, an Avenger torpedo bomber and a PT boat. Phase I adds an arrival building, museum store, orientation plaza and public restrooms.","Cast concrete and corrugated metal refer to the bunkers and temporary military structures of the Pacific theater. The museum's emphasis is on education and remembrance of human sacrifice."]},
+ {slug:"harte-research-institute", name:"Harte Research Institute for Gulf of Mexico Studies", place:"Corpus Christi, Texas", client:"Texas A&M University System", sectors:[2,0],
+  awards:["National Brick in Architecture Gold Award, 2007","AIA Corpus Christi Citation Award, 2009"],
+  text:["Dedicated to the marine and coastal sustainability of the Gulf, the building embodies the Institute's research, education and public policy mission, with laboratories, offices, classrooms and a conference center.","Brick, stainless steel and glass are handled with precision in the science spaces and more freely in the public areas. East and west exposures are minimized, while north-facing public spaces open to the bay under suspended light shelves and vaulted ceilings."]},
+ {slug:"voestalpine", name:"Voestalpine Administration Building", place:"Portland, Texas", client:"Voestalpine Texas, LLC", sectors:[3],
+  awards:["AGC Texas Outstanding Construction Award, 2015","AIA Corpus Christi Award of Merit, 2019"],
+  text:["A design-build operations office for a new Austrian-owned steel plant, delivered on a demanding schedule and to European corporate standards.","The building celebrates steel, exposing elements usually concealed such as metal studs and lath. A deeply shaded west entry reduces energy use, and a monumental stair frames the plant's 400-foot process tower."]},
+ {slug:"tornillo-port-of-entry", name:"Tornillo-Guadalupe Land Port of Entry", place:"El Paso County, Texas", client:"U.S. General Services Administration", sectors:[0],
+  awards:["AIA Corpus Christi Award of Merit, 2019","LEED Gold"],
+  text:["A commercial vehicle inspection facility on 117 acres of former irrigated farmland, conceived as a vest-pocket desert micro-ecology within the region's green agricultural setting.","Locally quarried stone carries the colors of the desert, corrugated steel recalls regional farm buildings, and precast concrete canopies integrate inspection technology, ventilation, daylight and room for expansion."]},
+ {slug:"ysleta-port-of-entry", name:"Ysleta Land Port of Entry", place:"El Paso, Texas", client:"U.S. General Services Administration", sectors:[0],
+  awards:["AIA Corpus Christi Citation Award, 2013","LEED Silver"],
+  text:["New commercial inspection canopies, exit booths and secondary inspection stations, with expansions and renovations to vehicular, pedestrian and commercial operations.","Red brick relates to the existing buildings of the region, while the rhythm of the canopies echoes the mountain horizon that defines El Paso."]},
+ {slug:"texas-travel-information-center", name:"Texas Travel Information Center", place:"Amarillo, Texas", client:"TxDOT Travel Division", sectors:[1,0],
+  awards:["Texas Society of Architects Honor Award, 2004","AIA Corpus Christi Merit Award, 2005"],
+  text:["A visitor center at a sprawling freeway site near the Amarillo airport, conceived as an inverted form of nearby Palo Duro Canyon rising from a created creek.","Banded walls express the canyon's layered strata and the natural forces that formed it, set within grassland cut by water."]},
+ {slug:"brooks-county-safety-rest-area", name:"TxDOT Brooks County Safety Rest Area", place:"Falfurrias, Texas", client:"Texas Department of Transportation", sectors:[1,0],
+  awards:["National AIA Honor Award, 1999","Texas Society of Architects 25-Year Award, 2023","Texas Society of Architects Honor Award, 1998 and 2002"],
+  text:["A cluster of modest restroom buildings anchors a grassy quadrangle beneath live oaks. Considered the gateway to the Lower Rio Grande Valley, the rest area grows out of the earth and echoes the region's history in scale, form and texture."]},
+ {slug:"kenedy-county-safety-rest-area", name:"TxDOT Kenedy County Safety Rest Area", place:"Kenedy County, Texas", client:"Texas Department of Transportation", sectors:[1,0],
+  awards:["Texas Society of Architects Honor Award, 2002","AIA Corpus Christi Honor Award, 2002"],
+  text:["Set in the highway median through South Texas ranch country, the rest area reflects a blend of Mexican tradition with ranching and oil industry heritage.","Like historic rural train stations, vaulted bent-pipe trusses carry heavy planked wood roofs. The trusses hold branding-iron medallions of renowned local ranches, continuing the region's blacksmith craft."]},
+ {slug:"rose-house", name:"Rose House", place:"Wimberley, Texas", client:"Private residence", sectors:[4],
+  awards:["AIA Corpus Christi People's Choice Award, 2016"],
+  text:["Nestled into a hillside dense with live oaks, the house is designed to embrace the Hill Country. Bedrooms and studios sit within the foliage, while larger open rooms take in the long views.","Two rectangular volumes set at an angle form a private entry court and open toward a terraced garden. A gallery linking them displays the owners' folk art collection, in a palette of native limestone, site-harvested stone, wood and muted color."]},
+ {slug:"turpin-west-house", name:"Turpin West House", place:"Corpus Christi, Texas", client:"Private residence", sectors:[4],
+  awards:["AIA Corpus Christi Merit Award, 2016"],
+  text:["A very small, modest and well-crafted home for a recently retired couple, fitted into an established neighborhood.","Planned with the efficiency of a sailboat, the house relies on daylight and natural ventilation for most of the year and opens to outdoor rooms for herb gardens, birds and butterflies."]},
+ {slug:"st-marks-episcopal-church", name:"St. Mark's Episcopal Church", place:"Corpus Christi, Texas", client:"Episcopal Church Corporation of West Texas", sectors:[5],
+  awards:["Texas Society of Architects Honor Award, 1990","AIA Corpus Christi Honor Award, 1991"],
+  facts:"8,500 square feet",
+  text:["A new multipurpose building for a neighborhood parish, with a suburban site master-planned as a cloistered compound around a courtyard.","A basilica-form hall with an acoustically adjustable ceiling and movable partitions serves worship, education and fellowship."]}
+];
+
+const FEATURED = ["columbus-lpoe","manila-american-cemetery-visitor-center","port-of-corpus-christi","del-mar-music-1","west-pecos-safety-rest-area","national-museum-of-the-pacific-war"];
+
+const BOARDS = [
+ {name:"Caddo Mounds Cultural Center, Phase II", img:"on-the-boards/03"},
+ {name:"Levi Jordan Visitor Center", img:"on-the-boards/01"},
+ {name:"TxDOT Nolan County Safety Rest Area", img:"on-the-boards/04"}
+];
+
+const LEADERSHIP = [
+ {name:"David Richter", role:"FAIA, President", img:"../img/people/david-richter.jpg"},
+ {name:"Elizabeth Chu Richter", role:"FAIA, Chief Executive Officer", img:"../img/people/elizabeth-chu-richter.jpg"},
+ {name:"Maya Richter Hernandez", role:"AIA, Principal Architect", img:"../img/people/maya-richter-hernandez.jpg"},
+ {name:"Elissa Richter", role:"AIA, Principal Architect", img:"../img/people/elissa-richter.jpg"},
+ {name:"Aaron Geiser", role:"Senior Project Manager", img:"../img/people/aaron-geiser.jpg"}
+];
+
+const PRINCIPALS = [
+ ["David Richter","FAIA"],["Elizabeth Chu Richter","FAIA"],["Samuel Morris","AIA"],
+ ["Maya Richter Hernandez","AIA"],["Elissa Ling Richter","AIA"],["Frank Trimble","AIA"]
+];
+
+const SERVICES = ["Master Planning","Programming","Architectural Design","Interior Design","Construction Documents","Construction Administration and Management"];
+
+const AWARDS = [
+ [2023,[["Texas Society of Architects 25-Year Award","Brooks County Safety Rest Area, Falfurrias, TX"]]],
+ [2022,[["GSA Honor Award for Architecture","US Land Port of Entry, Columbus, NM"],["GSA Honor Award for Landscape Architecture","US Land Port of Entry, Columbus, NM"],["AIA Corpus Christi Award of Excellence","Indian Point Pavilion, Portland, TX"],["AIA Corpus Christi Award of Excellence","US Land Port of Entry, Columbus, NM"],["AIA Corpus Christi Award of Merit","Manila American Cemetery Visitor Center, Manila, Philippines"],["AIA Corpus Christi Award of Merit","Del Mar College General Academics and Music Building II"],["AIA Corpus Christi Mayor's Choice Award","Del Mar College General Academics and Music Building II"],["Brick in Architecture Bronze Award","Del Mar College General Academics and Music Building II"]]],
+ [2021,[["Texas Society of Architects Medal for Lifetime Achievement","David Richter, FAIA and Elizabeth Chu Richter, FAIA"],["Brick in Architecture Bronze Award, Educational","Del Mar Academic and Music Phase II, Corpus Christi, TX"],["Brick in Architecture Bronze Award, Commercial","Port of Corpus Christi Office Building, Corpus Christi, TX"]]],
+ [2020,[["AIA COTE Top Ten Award","US Land Port of Entry, Columbus, NM"],["Texas Society of Architects Design Award","US Land Port of Entry, Columbus, NM"],["AIA New Mexico Honor Award","US Land Port of Entry, Columbus, NM"],["Brick in Architecture Best in Class, Commercial","US Land Port of Entry, Columbus, NM"],["AIA Corpus Christi Firm of the Year","Richter Architects"]]],
+ [2019,[["AIA International Region Award","Manila American Cemetery Visitor Center, Manila, Philippines"],["AIA Corpus Christi Award of Excellence","TxDOT West Pecos County Safety Rest Area, Fort Stockton, TX"],["AIA Corpus Christi People's Choice Award","TxDOT West Pecos County Safety Rest Area, Fort Stockton, TX"],["AIA Corpus Christi Award of Merit","Voestalpine Administration Building"],["AIA Corpus Christi Award of Merit","Tornillo Land Port of Entry, El Paso, TX"],["AIA Corpus Christi Award of Merit","San Patricio Municipal Water District, San Patricio County, TX"]]],
+ [2018,[["100 Architects of the Year","Korean Institute of Architects"]]],
+ [2016,[["AIA Corpus Christi Honor Award","Pacific Combat Zone, Phase I, Fredericksburg, TX"],["AIA Corpus Christi Merit Award","Del Mar Music Building Phase I, Corpus Christi, TX"],["AIA Corpus Christi Merit Award","Turpin West House, Corpus Christi, TX"],["AIA Corpus Christi People's Choice Award","Rose House, Wimberley, TX"]]],
+ [2015,[["AGC Texas Building Branch Outstanding Construction Award","Voestalpine Administration Building"]]],
+ [2013,[["AIA Corpus Christi Citation Award","Ysleta Land Port of Entry, El Paso, TX"],["AIA Corpus Christi Citation Award","University of Texas Marine Science Institute, Port Aransas, TX"]]],
+ [2011,[["Texas Society of Architects Architecture Firm Award","Richter Architects"]]],
+ [2010,[["National Brick in Architecture Bronze Award","Rose Haggar Park Pavilion, Dallas, TX"]]],
+ [2009,[["AIA Corpus Christi Citation Award","Harte Research Institute for Gulf of Mexico Studies"],["AIA Corpus Christi Citation Award","Del Mar Health Sciences and Technology Center"],["AIA Corpus Christi Honor Award","National Museum of the Pacific War, Fredericksburg, TX"],["TASA/TASB Award for Design, Value and Public Participation","West Oso High School, Corpus Christi, TX"]]],
+ [2007,[["National Brick in Architecture Gold Award","Harte Research Institute for Gulf of Mexico Studies"]]],
+ [2006,[["National Brick in Architecture Gold Award","Oak Park Elementary School, Corpus Christi, TX"],["TASB/TASA Citation Award","Oak Park Elementary School, Corpus Christi, TX"]]],
+ [2005,[["AIA Corpus Christi Honor Award","RTA Southside Transfer Station, Corpus Christi, TX"],["AIA Corpus Christi Honor Award","Oak Park Elementary School, Corpus Christi, TX"],["AIA Corpus Christi Merit Award","Texas Travel Information Center, Amarillo, TX"]]],
+ [2004,[["Texas Society of Architects Honor Award","Texas Travel Information Center, Amarillo, TX"]]],
+ [2003,[["National Brick in Architecture Award","Congressman Solomon P. Ortiz International Center"]]],
+ [2002,[["AIA Corpus Christi Honor Award","Kenedy County Safety Rest Area"],["AIA Corpus Christi Merit Award","Mustang Island Episcopal Conference Center"],["AIA Corpus Christi Citation Award","Mustang Island Episcopal Conference Center"],["Texas Society of Architects Honor Award","Congressman Solomon P. Ortiz International Center"],["Texas Society of Architects Honor Award","Kenedy County Safety Rest Area"],["Texas Society of Architects Honor Award","Brooks County Safety Rest Area"]]],
+ [2001,[["Brick in Architecture Award","Brooks County Safety Rest Area"]]],
+ [1999,[["National AIA Honor Award","Brooks County Safety Rest Area"],["AIA Corpus Christi Honor Award","Crocker House, Corpus Christi, TX"],["AIA Corpus Christi Merit Award","Grace Presbyterian Church, Corpus Christi, TX"]]],
+ [1998,[["Texas Society of Architects Honor Award","Brooks County Safety Rest Area"]]],
+ [1997,[["Texas Society of Architects Honor Award","Hulings Gatehouse Studio and Renovation, Corpus Christi, TX"]]],
+ [1995,[["NEA / U.S. Department of Transportation Honor Award","Staples Street Bus Stops, Corpus Christi, TX"],["AIA Corpus Christi Honor Award","Citizens Bank Staples Branch"],["AIA Corpus Christi Honor Award","First Baptist Church Education Addition"],["AIA Corpus Christi Honor Award","Rangel Residence"],["AIA Corpus Christi Merit Award","Falfurrias State Bank"]]],
+ [1991,[["AIA Corpus Christi Citation Award","Greenwood Branch Library Addition"],["AIA Corpus Christi Honor Award","St. Mark's Episcopal Church"],["AIA Corpus Christi Merit Award","Del Mar College Fine Arts Center"],["AIA Corpus Christi Citation Award","The Bank of Corpus Christi, Esplanade"]]],
+ [1990,[["Texas Society of Architects Honor Award","St. Mark's Episcopal Church"]]],
+ [1988,[["TASA/TASB/TSA Exhibit of School Architecture Honor Award","Menger School Addition and Renovation"],["AIA Corpus Christi Honor Award","Richter House"],["AIA Corpus Christi Merit Award","YWCA of Corpus Christi"],["AIA Corpus Christi Citation Award","Nueces County Community Center"],["AIA Corpus Christi Citation Award","Corpus Christi City Hall"]]],
+ [1986,[["Corpus Christi Landmark Commission Award","The Water Street Market"],["Texas Society of Architects Jury Commendation","La Perla Gallery"],["Texas Society of Architects Jury Commendation","Water Street Market"]]],
+ [1985,[["Corpus Christi Landmark Commission Award","The Guaranty Title Building"],["AIA Corpus Christi Honor Award","Las Palmas Shopping Center"],["AIA Corpus Christi Honor Award","La Perla Gallery"],["AIA Corpus Christi Merit Award","The Water Street Market"]]]
+];
+
+const IMG = {"meta":{"columbus-lpoe":{"hero":"../img/columbus-lpoe/hero.jpg","heroSize":[2000,1082],"cover":"../img/columbus-lpoe/cover.jpg","gallery":[["../img/columbus-lpoe/01.jpg",1600,1067],["../img/columbus-lpoe/02.jpg",1600,982],["../img/columbus-lpoe/03.jpg",1600,1067],["../img/columbus-lpoe/04.jpg",1025,683],["../img/columbus-lpoe/05.jpg",1600,1200],["../img/columbus-lpoe/06.jpg",1600,1067],["../img/columbus-lpoe/07.jpg",1600,1051],["../img/columbus-lpoe/08.jpg",1600,1143],["../img/columbus-lpoe/09.jpg",1142,1600],["../img/columbus-lpoe/10.jpg",1600,900],["../img/columbus-lpoe/11.jpg",1600,1090]]},"manila-american-cemetery-visitor-center":{"hero":"../img/manila-american-cemetery-visitor-center/hero.jpg","heroSize":[2000,1334],"cover":"../img/manila-american-cemetery-visitor-center/cover.jpg","gallery":[["../img/manila-american-cemetery-visitor-center/01.jpg",1600,1074],["../img/manila-american-cemetery-visitor-center/02.jpg",1600,1056],["../img/manila-american-cemetery-visitor-center/03.jpg",1600,1067],["../img/manila-american-cemetery-visitor-center/04.jpg",1600,1053],["../img/manila-american-cemetery-visitor-center/05.jpg",1600,1054],["../img/manila-american-cemetery-visitor-center/06.jpg",1600,1080],["../img/manila-american-cemetery-visitor-center/07.jpg",1600,1067],["../img/manila-american-cemetery-visitor-center/08.jpg",1600,1067],["../img/manila-american-cemetery-visitor-center/09.jpg",1066,1600],["../img/manila-american-cemetery-visitor-center/10.jpg",1600,900]]},"port-of-corpus-christi":{"hero":"../img/port-of-corpus-christi/hero.jpg","heroSize":[2000,1174],"cover":"../img/port-of-corpus-christi/cover.jpg","gallery":[["../img/port-of-corpus-christi/01.jpg",1600,998],["../img/port-of-corpus-christi/02.jpg",1600,1102],["../img/port-of-corpus-christi/03.jpg",1600,1067],["../img/port-of-corpus-christi/04.jpg",1600,1069],["../img/port-of-corpus-christi/05.jpg",1600,1060],["../img/port-of-corpus-christi/06.jpg",1600,1067],["../img/port-of-corpus-christi/07.jpg",1067,1600],["../img/port-of-corpus-christi/08.jpg",1163,1600],["../img/port-of-corpus-christi/09.jpg",1600,1094],["../img/port-of-corpus-christi/10.jpg",1106,1600],["../img/port-of-corpus-christi/11.jpg",1067,1600],["../img/port-of-corpus-christi/12.jpg",1096,1600],["../img/port-of-corpus-christi/13.jpg",1067,1600],["../img/port-of-corpus-christi/14.jpg",1067,1600],["../img/port-of-corpus-christi/15.jpg",1051,1600],["../img/port-of-corpus-christi/16.jpg",1600,1034],["../img/port-of-corpus-christi/17.jpg",1600,1038],["../img/port-of-corpus-christi/18.jpg",1164,1600]]},"del-mar-academic-and-music-2":{"hero":"../img/del-mar-academic-and-music-2/hero.jpg","heroSize":[2000,1334],"cover":"../img/del-mar-academic-and-music-2/cover.jpg","gallery":[["../img/del-mar-academic-and-music-2/01.jpg",1600,1067],["../img/del-mar-academic-and-music-2/02.jpg",800,533]]},"del-mar-music-1":{"hero":"../img/del-mar-music-1/hero.jpg","heroSize":[2000,1334],"cover":"../img/del-mar-music-1/cover.jpg","gallery":[["../img/del-mar-music-1/01.jpg",1600,1506],["../img/del-mar-music-1/02.jpg",1067,1600],["../img/del-mar-music-1/03.jpg",1600,1067],["../img/del-mar-music-1/04.jpg",1020,1530],["../img/del-mar-music-1/05.jpg",1067,1600],["../img/del-mar-music-1/06.jpg",1020,1476],["../img/del-mar-music-1/07.jpg",1088,725],["../img/del-mar-music-1/08.jpg",1600,1173]]},"west-pecos-safety-rest-area":{"hero":"../img/west-pecos-safety-rest-area/hero.jpg","heroSize":[2000,892],"cover":"../img/west-pecos-safety-rest-area/cover.jpg","gallery":[["../img/west-pecos-safety-rest-area/01.jpg",1600,930],["../img/west-pecos-safety-rest-area/02.jpg",1600,1200],["../img/west-pecos-safety-rest-area/03.jpg",1200,1600],["../img/west-pecos-safety-rest-area/04.jpg",1066,1600],["../img/west-pecos-safety-rest-area/05.jpg",1600,1067],["../img/west-pecos-safety-rest-area/06.jpg",1600,1530],["../img/west-pecos-safety-rest-area/07.jpg",1600,1067],["../img/west-pecos-safety-rest-area/08.jpg",1600,1067],["../img/west-pecos-safety-rest-area/09.jpg",1600,721],["../img/west-pecos-safety-rest-area/10.jpg",1600,863],["../img/west-pecos-safety-rest-area/11.jpg",1600,1200]]},"national-museum-of-the-pacific-war":{"hero":"../img/national-museum-of-the-pacific-war/hero.jpg","heroSize":[2000,1375],"cover":"../img/national-museum-of-the-pacific-war/cover.jpg","gallery":[["../img/national-museum-of-the-pacific-war/01.jpg",1020,680],["../img/national-museum-of-the-pacific-war/02.jpg",1600,1095],["../img/national-museum-of-the-pacific-war/03.jpg",1020,738],["../img/national-museum-of-the-pacific-war/04.jpg",1600,994],["../img/national-museum-of-the-pacific-war/05.jpg",1600,1179],["../img/national-museum-of-the-pacific-war/06.jpg",1600,636],["../img/national-museum-of-the-pacific-war/07.jpg",1020,1198],["../img/national-museum-of-the-pacific-war/08.jpg",1033,1600],["../img/national-museum-of-the-pacific-war/09.jpg",1066,1600],["../img/national-museum-of-the-pacific-war/10.jpg",1020,1307],["../img/national-museum-of-the-pacific-war/11.jpg",769,525],["../img/national-museum-of-the-pacific-war/12.jpg",766,511]]},"pacific-combat-zone":{"hero":"../img/pacific-combat-zone/hero.jpg","heroSize":[1440,900],"cover":"../img/pacific-combat-zone/cover.jpg","gallery":[["../img/pacific-combat-zone/01.jpg",1600,1067],["../img/pacific-combat-zone/02.jpg",1440,900],["../img/pacific-combat-zone/03.jpg",1440,900],["../img/pacific-combat-zone/04.jpg",1066,1600],["../img/pacific-combat-zone/05.jpg",1440,900],["../img/pacific-combat-zone/06.jpg",1440,900]]},"harte-research-institute":{"hero":"../img/harte-research-institute/hero.jpg","heroSize":[1440,900],"cover":"../img/harte-research-institute/cover.jpg","gallery":[["../img/harte-research-institute/01.jpg",1600,1067],["../img/harte-research-institute/02.jpg",1440,900],["../img/harte-research-institute/03.jpg",750,482],["../img/harte-research-institute/04.jpg",1056,1600],["../img/harte-research-institute/05.jpg",1048,1600],["../img/harte-research-institute/06.jpg",1440,900],["../img/harte-research-institute/07.jpg",1066,1600],["../img/harte-research-institute/08.jpg",1600,1074],["../img/harte-research-institute/09.jpg",1600,1067],["../img/harte-research-institute/10.jpg",1188,1600]]},"voestalpine":{"hero":"../img/voestalpine/hero.jpg","heroSize":[2000,1334],"cover":"../img/voestalpine/cover.jpg","gallery":[["../img/voestalpine/01.jpg",1600,1060],["../img/voestalpine/02.jpg",1085,1600],["../img/voestalpine/03.jpg",1066,1600],["../img/voestalpine/04.jpg",1066,1600],["../img/voestalpine/05.jpg",1066,1600],["../img/voestalpine/06.jpg",1600,1067],["../img/voestalpine/07.jpg",1600,1067],["../img/voestalpine/08.jpg",1600,1405]]},"tornillo-port-of-entry":{"hero":"../img/tornillo-port-of-entry/hero.jpg","heroSize":[2000,1315],"cover":"../img/tornillo-port-of-entry/cover.jpg","gallery":[["../img/tornillo-port-of-entry/01.jpg",1231,775],["../img/tornillo-port-of-entry/02.jpg",1235,778],["../img/tornillo-port-of-entry/03.jpg",1231,774],["../img/tornillo-port-of-entry/04.jpg",1233,770],["../img/tornillo-port-of-entry/05.jpg",1243,783]]},"ysleta-port-of-entry":{"hero":"../img/ysleta-port-of-entry/hero.jpg","heroSize":[1440,900],"cover":"../img/ysleta-port-of-entry/cover.jpg","gallery":[["../img/ysleta-port-of-entry/01.jpg",1440,900],["../img/ysleta-port-of-entry/02.jpg",1440,900],["../img/ysleta-port-of-entry/03.jpg",900,1440],["../img/ysleta-port-of-entry/04.jpg",900,1440]]},"texas-travel-information-center":{"hero":"../img/texas-travel-information-center/hero.jpg","heroSize":[1895,1438],"cover":"../img/texas-travel-information-center/cover.jpg","gallery":[["../img/texas-travel-information-center/01.jpg",1600,1206],["../img/texas-travel-information-center/02.jpg",1600,1206],["../img/texas-travel-information-center/03.jpg",1600,1219],["../img/texas-travel-information-center/04.jpg",1088,1236],["../img/texas-travel-information-center/05.jpg",1200,1600],["../img/texas-travel-information-center/06.jpg",1088,1376],["../img/texas-travel-information-center/07.jpg",1088,1376]]},"brooks-county-safety-rest-area":{"hero":"../img/brooks-county-safety-rest-area/hero.jpg","heroSize":[1981,1322],"cover":"../img/brooks-county-safety-rest-area/cover.jpg","gallery":[["../img/brooks-county-safety-rest-area/01.jpg",1600,1067],["../img/brooks-county-safety-rest-area/02.jpg",1600,986],["../img/brooks-county-safety-rest-area/03.jpg",1088,725],["../img/brooks-county-safety-rest-area/04.jpg",899,599],["../img/brooks-county-safety-rest-area/05.jpg",1200,1600],["../img/brooks-county-safety-rest-area/06.jpg",1067,1600],["../img/brooks-county-safety-rest-area/07.jpg",1133,1600],["../img/brooks-county-safety-rest-area/08.jpg",1088,1360],["../img/brooks-county-safety-rest-area/09.jpg",1088,1413],["../img/brooks-county-safety-rest-area/10.jpg",594,681]]},"kenedy-county-safety-rest-area":{"hero":"../img/kenedy-county-safety-rest-area/hero.jpg","heroSize":[2000,1359],"cover":"../img/kenedy-county-safety-rest-area/cover.jpg","gallery":[["../img/kenedy-county-safety-rest-area/01.jpg",1600,1015],["../img/kenedy-county-safety-rest-area/02.jpg",1600,1079],["../img/kenedy-county-safety-rest-area/03.jpg",1600,1200],["../img/kenedy-county-safety-rest-area/04.jpg",1600,1200],["../img/kenedy-county-safety-rest-area/05.jpg",628,452],["../img/kenedy-county-safety-rest-area/06.jpg",1081,1600],["../img/kenedy-county-safety-rest-area/07.jpg",1600,1165]]},"rose-house":{"hero":"../img/rose-house/hero.jpg","heroSize":[1440,900],"cover":"../img/rose-house/cover.jpg","gallery":[["../img/rose-house/01.jpg",1440,900],["../img/rose-house/02.jpg",1440,900],["../img/rose-house/03.jpg",1440,900],["../img/rose-house/04.jpg",1440,900]]},"turpin-west-house":{"hero":"../img/turpin-west-house/hero.jpg","heroSize":[997,671],"cover":"../img/turpin-west-house/cover.jpg","gallery":[["../img/turpin-west-house/01.jpg",1363,900],["../img/turpin-west-house/02.jpg",1350,900],["../img/turpin-west-house/03.jpg",1100,900],["../img/turpin-west-house/04.jpg",900,1350]]},"st-marks-episcopal-church":{"hero":"../img/st-marks-episcopal-church/hero.jpg","heroSize":[1800,1200],"cover":"../img/st-marks-episcopal-church/cover.jpg","gallery":[["../img/st-marks-episcopal-church/01.jpg",1600,1067],["../img/st-marks-episcopal-church/02.jpg",1067,1600],["../img/st-marks-episcopal-church/03.jpg",1067,1600],["../img/st-marks-episcopal-church/04.jpg",1600,1067]]}},"slides":[["columbus-lpoe","../img/slides/01.jpg"],["manila-american-cemetery-visitor-center","../img/slides/02.jpg"],["port-of-corpus-christi","../img/slides/03.jpg"],["del-mar-music-1","../img/slides/04.jpg"],["west-pecos-safety-rest-area","../img/slides/05.jpg"],["national-museum-of-the-pacific-war","../img/slides/06.jpg"],["harte-research-institute","../img/slides/07.jpg"],["tornillo-port-of-entry","../img/slides/08.jpg"],["texas-travel-information-center","../img/slides/09.jpg"]],"extra":{"richter-architects-office/03":["../img/extra/richter-architects-office-03.jpg",1800,1350],"richter-architects-office/01":["../img/extra/richter-architects-office-01.jpg",1500,1800],"richter-architects-office/02":["../img/extra/richter-architects-office-02.jpg",1350,1800],"about-us/14":["../img/extra/about-us-14.jpg",1800,1211],"contact/01":["../img/extra/contact-01.jpg",1800,1350],"on-the-boards/01":["../img/extra/on-the-boards-01.jpg",1800,1013],"on-the-boards/04":["../img/extra/on-the-boards-04.jpg",1800,1013],"on-the-boards/03":["../img/extra/on-the-boards-03.jpg",1800,1013]}};
+
+/* ---------- derived data ---------- */
+const SKEY=["government","museum","educational","commercial","residential","religious"];
+const SNAME=["Government","Museum and Visitor","Education","Commercial","Residential","Religious"];
+const LL={ /* slug: [lat, lon, place key] */
+ "columbus-lpoe":[31.83,-107.64,"Columbus"],"manila-american-cemetery-visitor-center":[14.54,121.05,"Manila"],"port-of-corpus-christi":[27.81,-97.40,"Corpus Christi"],
+ "del-mar-academic-and-music-2":[27.77,-97.41,"Corpus Christi"],"del-mar-music-1":[27.77,-97.41,"Corpus Christi"],"west-pecos-safety-rest-area":[30.89,-102.88,"Fort Stockton"],
+ "national-museum-of-the-pacific-war":[30.27,-98.87,"Fredericksburg"],"pacific-combat-zone":[30.27,-98.87,"Fredericksburg"],"harte-research-institute":[27.71,-97.32,"Corpus Christi"],
+ "voestalpine":[27.88,-97.32,"Portland"],"tornillo-port-of-entry":[31.44,-106.09,"Tornillo"],"ysleta-port-of-entry":[31.67,-106.34,"El Paso"],
+ "texas-travel-information-center":[35.19,-101.83,"Amarillo"],"brooks-county-safety-rest-area":[27.23,-98.14,"Falfurrias"],"kenedy-county-safety-rest-area":[27.22,-97.79,"Kenedy County"],
+ "rose-house":[29.99,-98.10,"Wimberley"],"turpin-west-house":[27.80,-97.40,"Corpus Christi"],"st-marks-episcopal-church":[27.80,-97.40,"Corpus Christi"]
+};
+const PLACES=[ /* name, state, lat, lon, label dx, dy, anchor */
+ ["Corpus Christi","Texas",27.80,-97.40,16,22,"start"],["Portland","Texas",27.88,-97.32,14,-10,"start"],["Kenedy County","Texas",27.22,-97.79,-4,30,"start"],
+ ["Falfurrias","Texas",27.23,-98.14,-14,6,"end"],["Fredericksburg","Texas",30.27,-98.87,-16,6,"end"],["Wimberley","Texas",29.99,-98.10,14,6,"start"],
+ ["Fort Stockton","Texas",30.89,-102.88,14,6,"start"],["Amarillo","Texas",35.19,-101.83,14,6,"start"],["El Paso","Texas",31.67,-106.34,12,-10,"start"],
+ ["Tornillo","Texas",31.44,-106.09,12,20,"start"],["Columbus","New Mexico",31.83,-107.64,0,-16,"middle"],["Manila","Philippines",14.54,121.05,0,0,"start"]
+];
+const TX=[[-106.62,32.0],[-103.06,32.0],[-103.04,36.5],[-100.0,36.5],[-100.0,34.56],[-99.2,34.3],[-98.6,34.15],[-97.9,33.9],[-97.2,33.85],[-96.6,33.85],[-95.8,33.85],[-95.2,33.95],[-94.48,33.64],[-94.04,33.55],[-94.04,31.99],[-93.83,31.6],[-93.55,31.2],[-93.52,30.9],[-93.72,30.3],[-93.84,29.7],[-94.7,29.35],[-95.2,28.95],[-96.0,28.55],[-96.8,28.1],[-97.2,27.6],[-97.37,27.0],[-97.25,26.4],[-97.15,25.96],[-97.5,25.88],[-98.2,26.06],[-99.1,26.42],[-99.45,27.25],[-99.5,27.6],[-100.3,28.3],[-100.65,29.1],[-101.4,29.77],[-102.3,29.88],[-102.7,29.7],[-103.15,28.98],[-104.0,29.3],[-104.55,29.7],[-104.9,30.6],[-105.4,30.85],[-106.2,31.47],[-106.5,31.75]];
+const SHEETS=[["cover","Cover"],["plan","Location Plan"],["work","Schedule of Work"],["recognition","Recognition"],["practice","Practice"],["contact","Contact"]];
+const BY=Object.fromEntries(PROJECTS.map(p=>[p.slug,p]));
+const M=IMG.meta, X=IMG.extra;
+const AWARD_N=AWARDS.reduce((n,y)=>n+y[1].length,0);
+const BOARD_IMG=["on-the-boards/03","on-the-boards/01","on-the-boards/04"];
+const AW_SLUG=[["Columbus","columbus-lpoe"],["Manila","manila-american-cemetery-visitor-center"],["Port of Corpus Christi","port-of-corpus-christi"],["Music Building II","del-mar-academic-and-music-2"],["Music Phase II","del-mar-academic-and-music-2"],["Music Building Phase I","del-mar-music-1"],["West Pecos","west-pecos-safety-rest-area"],["National Museum of the Pacific War","national-museum-of-the-pacific-war"],["Pacific Combat Zone","pacific-combat-zone"],["Harte","harte-research-institute"],["Voestalpine","voestalpine"],["Tornillo","tornillo-port-of-entry"],["Ysleta","ysleta-port-of-entry"],["Texas Travel Information","texas-travel-information-center"],["Brooks County","brooks-county-safety-rest-area"],["Kenedy County","kenedy-county-safety-rest-area"],["Rose House","rose-house"],["Turpin West","turpin-west-house"],["St. Mark","st-marks-episcopal-church"]];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad=(n,l=2)=>String(n).padStart(l,"0");
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const fmtLL=(la,lo)=>`${Math.abs(la).toFixed(2)}° ${la>=0?"N":"S"}, ${Math.abs(lo).toFixed(2)}° ${lo>=0?"E":"W"}`;
+const sheetNo=p=>"A-"+(101+PROJECTS.indexOf(p));
+const root=document.documentElement, setEl=$("#set"), pj=$("#pj");
+
+/* ---------- motion ---------- */
+let motion=!matchMedia("(prefers-reduced-motion: reduce)").matches;
+try{const s=localStorage.getItem("ra-motion"); if(s) motion=s==="on";}catch(e){}
+function applyMotion(){root.classList.toggle("m",motion);root.classList.toggle("nomotion",!motion);const b=$("#motionBtn");b.textContent=motion?"Motion on":"Motion off";b.setAttribute("aria-pressed",motion);}
+$("#motionBtn").onclick=()=>{motion=!motion;try{localStorage.setItem("ra-motion",motion?"on":"off")}catch(e){}applyMotion();$$(".rv,.lines,.dim,.map,.sky").forEach(e=>e.classList.add("in"));onScroll();};
+applyMotion();
+
+/* ---------- map projection ---------- */
+const LON0=-108.7,LON1=-93.0,LAT0=25.2,LAT1=37.0,MW=1346,MH=1180;
+const px=lo=>(lo-LON0)/(LON1-LON0)*MW, py=la=>(LAT1-la)/(LAT1-LAT0)*MH;
+const MANILA=[150,1040];
+
+function head(no,title,note){return `<header class="sh-head"><p class="t num">${no}</p><h2 class="lines"><span><i>${title}</i></span></h2><p class="t mute r">${note}</p></header><div class="dim"></div>`;}
+
+/* ---------- build the set ---------- */
+function vCover(){
+  return `<section class="sh cover" id="cover" aria-label="Cover: all ${PROJECTS.length} projects">${PROJECTS.map((p,i)=>`<a class="slat" href="#${p.slug}" data-i="${i}" style="--i:${i}" aria-label="${esc(p.name)}, ${esc(p.place)}">
+    <img src="${M[p.slug].hero}" alt="" ${i>7?'loading="lazy"':''}>
+    <span class="no t num">${pad(i+1)}</span>
+    <span class="cap"><span class="t num">${sheetNo(p)} · ${esc(p.place)}</span><h3>${esc(p.name)}</h3><span class="go t">Open sheet</span></span></a>`).join("")}</section>`;
+}
+function vPlan(){
+  let g="";
+  for(let lo=-108;lo<=-94;lo+=2) g+=`<line class="grat" x1="${px(lo)}" y1="0" x2="${px(lo)}" y2="${MH}"/><text class="glab" x="${px(lo)+6}" y="${MH-12}">${-lo}° W</text>`;
+  for(let la=26;la<=36;la+=2) g+=`<line class="grat" x1="0" y1="${py(la)}" x2="${MW}" y2="${py(la)}"/><text class="glab" x="${MW-10}" y="${py(la)-8}" text-anchor="end">${la}° N</text>`;
+  const cc=[px(-97.40),py(27.80)];
+  const pos=p=>p[0]==="Manila"?MANILA:[px(p[3]),py(p[2])];
+  const rays=PLACES.slice(1).map((p,i)=>{const [x,y]=pos(p),len=Math.hypot(x-cc[0],y-cc[1]).toFixed(0);return `<line class="ray" x1="${cc[0]}" y1="${cc[1]}" x2="${x}" y2="${y}" style="--len:${len};--d:${(i*.08).toFixed(2)}s"/>`}).join("");
+  const pts=PLACES.map((p,i)=>{const [x,y]=pos(p),n=PROJECTS.filter(q=>LL[q.slug][2]===p[0]).length,r=5+n*1.6;
+    const lab=p[0]==="Manila"?`<text x="${x+22}" y="${y-4}">Manila</text><text x="${x+22}" y="${y+16}" class="glab">Philippines · 14.54° N, 121.05° E</text>`:`<text x="${x+p[4]}" y="${y+p[5]}" text-anchor="${p[6]}">${p[0]}</text>`;
+    return `<g class="pt" data-p="${i}" tabindex="0" role="button" aria-label="${p[0]}, ${p[1]}: ${n} ${n===1?"project":"projects"}"><circle cx="${x}" cy="${y}" r="26" fill="transparent"/><circle class="ring" cx="${x}" cy="${y}" r="${r+7}"/><circle class="dot" cx="${x}" cy="${y}" r="${r}"/>${lab}</g>`}).join("");
+  return `<section class="sh" id="plan">${head("A-001","Location Plan",`${PLACES.length} places · schematic`)}
+  <div class="plan">
+    <div class="map" id="map">
+      <svg viewBox="0 0 ${MW} ${MH}" role="group" aria-label="Schematic map of project locations in Texas and New Mexico, with Manila shown in an inset">
+        ${g}<polygon class="tx" points="${TX.map(([lo,la])=>px(lo).toFixed(1)+","+py(la).toFixed(1)).join(" ")}"/>
+        <rect class="inset" x="${MANILA[0]-60}" y="${MANILA[1]-62}" width="470" height="124"/>
+        ${rays}${pts}
+      </svg>
+      <i class="cross h"></i><i class="cross v"></i>
+      <p class="readout t num mute" id="readout">Move over the plan for coordinates</p>
+      <p class="north t">N</p>
+    </div>
+    <div class="place" id="place" aria-live="polite"></div>
+  </div></section>`;
+}
+let filt=-1;
+function schedRows(){
+  const list=PROJECTS.filter(p=>filt<0||p.sectors.includes(filt));
+  return `<div class="row hd t mute"><span>Sheet</span><span>Project</span><span>Location</span><span class="c4">Building type</span><span class="c5">Client</span><span class="e">Honors</span></div>`+
+   list.map(p=>`<a class="row" href="#${p.slug}" data-peek="${M[p.slug].cover}"><span class="t mute num">${sheetNo(p)}</span><h3>${esc(p.name)}</h3><span>${esc(p.place)}</span><span class="mute c4">${p.sectors.map(s=>SNAME[s]).join(", ")}</span><span class="mute c5">${esc(p.client)}</span><span class="e num">${p.awards.length}</span></a>`).join("");
+}
+function vWork(){
+  return `<section class="sh pad-b" id="work">${head("A-002","Schedule of Work",`${PROJECTS.length} projects · ${SNAME.length} building types`)}
+  <div class="filters t" role="group" aria-label="Filter by building type" style="padding-top:34px">
+    <button data-f="-1" aria-pressed="true">All ${PROJECTS.length}</button>${SNAME.map((n,i)=>`<button data-f="${i}" aria-pressed="false">${n} ${PROJECTS.filter(p=>p.sectors.includes(i)).length}</button>`).join("")}
+  </div>
+  <div class="sched" id="sched">${schedRows()}</div></section>`;
+}
+const Y0=1985, Y1=AWARDS[0][0], AWY=Object.fromEntries(AWARDS.map(([y,l])=>[y,l])), AMAX=Math.max(...AWARDS.map(a=>a[1].length));
+function yearList(y){
+  const l=AWY[y]||[];
+  return `<p class="y num">${y}</p><ul>${l.length?l.map(([a,w])=>{const s=AW_SLUG.find(([k])=>w.includes(k));return `<li><span>${esc(a)}</span><span>${s?`<a href="#${s[1]}">${esc(w)}</a>`:esc(w)}</span></li>`}).join(""):`<li><span class="mute">No awards recorded this year.</span><span></span></li>`}</ul>`;
+}
+function vRecognition(){
+  let bars="";
+  for(let y=Y0;y<=Y1;y++){const n=(AWY[y]||[]).length;bars+=`<button data-y="${y}" class="${n?"":"zero"}" style="--h:${(n/AMAX*100).toFixed(1)}%;--i:${y-Y0}" aria-pressed="${y===Y1}" aria-label="${y}: ${n} ${n===1?"award":"awards"}"><i></i></button>`;}
+  return `<section class="sh pad-b" id="recognition">${head("A-003","Recognition",`${AWARD_N} awards · ${Y0} to ${Y1}`)}
+  <p class="t mute" style="padding:34px var(--gut) 18px;text-align:center">One bar per year. Height is the number of awards. Select a year.</p>
+  <div class="sky" id="sky" role="group" aria-label="Awards per year">${bars}</div>
+  <div class="sky-ax t mute num"><span>${Y0}</span><span>1995</span><span>2005</span><span>2015</span><span>${Y1}</span></div>
+  <div class="yearbox" id="yearbox">${yearList(Y1)}</div></section>`;
+}
+function vPractice(){
+  const creed="Buildings that grow out of their place, and are made to last.";
+  return `<section class="sh pad-b" id="practice">${head("A-004","Practice","Corpus Christi, Texas")}
+  <div class="creed" style="padding-top:clamp(50px,7vw,110px)">
+    <p class="big" id="creed">${creed.split(" ").map(w=>`<span class="w">${w}</span>`).join(" ")}</p>
+    <p class="sm rv">Richter Architects is a long-established practice. We believe quality design and lasting value are built through close relationships with our clients, across every building type we serve.</p>
+  </div>
+  <div class="tri">
+    <div class="rv"><p class="t mute">Design</p><h3>Grown from place</h3><p>Every site has its own land, light, climate and history. The building is our response to them.</p></div>
+    <div class="rv" style="--d:.1s"><p class="t mute">Value</p><h3>Made to last</h3><p>Creative, cost-effective and well-integrated work that holds its worth for decades.</p></div>
+    <div class="rv" style="--d:.2s"><p class="t mute">Clients</p><h3>Long relationships</h3><p>Public and private clients return to us, project after project, for special purposes and extraordinary locations.</p></div>
+  </div>
+  <div class="split">
+    <div class="ph rv"><img src="${X["richter-architects-office/03"][0]}" alt="Inside the Richter Architects studio" loading="lazy"></div>
+    <div><p class="t mute" style="margin-bottom:16px">Services, in the order a project runs</p><ol class="svc">${SERVICES.map((s,i)=>`<li class="rv" style="--d:${i*.05}s"><span class="t mute num">${pad(i+1)}</span><span>${esc(s)}</span></li>`).join("")}</ol></div>
+  </div>
+  <div class="sub"><h3>Leadership</h3><p class="t mute">The people behind the work</p></div>
+  <div class="people" style="margin-top:0">${LEADERSHIP.map((l,i)=>`<figure class="rv" style="--d:${i*.06}s"><div class="ph"><img src="${l.img}" alt="${esc(l.name)}" loading="lazy"></div><figcaption><h3>${esc(l.name)}</h3><p class="t mute">${esc(l.role)}</p></figcaption></figure>`).join("")}</div>
+  <p class="t mute" style="text-align:center;margin-top:44px">Principals</p>
+  <p class="prin">${PRINCIPALS.map(([n,c])=>`<span>${esc(n)}<span>${c}</span></span>`).join("")}</p>
+  <div class="sub"><h3>On the Boards</h3><p class="t mute">In design and construction</p></div>
+  <div class="boards">${BOARDS.map((b,i)=>`<figure class="rv" style="--d:${i*.1}s"><div class="ph"><img src="${X[BOARD_IMG[i]][0]}" alt="Rendering of ${esc(b.name)}" loading="lazy"></div><figcaption>${esc(b.name)}</figcaption></figure>`).join("")}</div>
+  </section>`;
+}
+function vContact(){
+  return `<section class="sh" id="contact">${head("A-005","Contact","Begin a project")}
+  <div class="contact" style="margin-top:clamp(28px,3.5vw,54px)">
+    <div class="in">
+      <p class="t mute">Telephone</p><a class="tel num" href="tel:+13618821288">361.882.1288</a>
+      <p class="t mute" style="margin-top:14px">Studio</p><p class="big">201 South Upper Broadway<br>Corpus Christi, Texas 78401</p>
+      <a class="btn t" href="https://www.google.com/maps/search/?api=1&query=201+South+Upper+Broadway+Corpus+Christi+TX+78401" target="_blank" rel="noopener">Open in Google Maps</a>
+    </div>
+    <div class="ph"><img src="${X["contact/01"][0]}" alt="Entrance to the Richter Architects office on Upper Broadway" loading="lazy"></div>
+  </div></section>`;
+}
+setEl.innerHTML=vCover()+vPlan()+vWork()+vRecognition()+vPractice()+vContact();
+$("#tbNav").innerHTML=SHEETS.map(([k,n],i)=>`<a href="#${k}" data-s="${k}">${i===1?"Plan":i===2?"Work":n}</a>`).join("");
+$("#list").innerHTML=SHEETS.map(([k,n],i)=>`<a href="#${k}"><span>${n}</span><span class="t mute num">A-00${i}</span></a>`).join("");
+$("#rulerLine").insertAdjacentHTML("beforeend",SHEETS.map((_,i)=>`<i data-t="${i}"></i>`).join(""));
+
+/* ---------- reveal observer ---------- */
+(function(){
+  const els=$$(".rv,.lines,.dim,.map,.sky",setEl);
+  if(!motion||!("IntersectionObserver" in window)){els.forEach(e=>e.classList.add("in"));return;}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{rootMargin:"0px 0px -10% 0px",threshold:.05});
+  els.forEach(e=>io.observe(e));
+})();
+
+/* ---------- cover louvers ---------- */
+(function(){
+  const slats=$$(".slat"), order=[0,6,2,10,5,1,15,8,12,3,16,7,4,13,9,17,11,14];
+  let k=0, t, held=false;
+  const set=i=>slats.forEach((s,j)=>s.classList.toggle("on",j===i));
+  const tick=()=>{if(held||!motion||pj.classList.contains("open"))return;k=(k+1)%order.length;set(order[k]);};
+  set(order[0]); t=setInterval(tick,4200);
+  const cover=$("#cover");
+  slats.forEach((s,i)=>{
+    s.addEventListener("mouseenter",()=>{held=true;set(i);});
+    s.addEventListener("focus",()=>{held=true;set(i);});
+    s.addEventListener("click",e=>{if(matchMedia("(hover:none)").matches&&!s.classList.contains("on")){e.preventDefault();held=true;set(i);}});
+  });
+  cover.addEventListener("mouseleave",()=>{held=false;});
+})();
+
+/* ---------- location plan ---------- */
+(function(){
+  const map=$("#map"), svg=$("svg",map), place=$("#place"), pts=$$(".pt",map);
+  function show(i){
+    const p=PLACES[i], list=PROJECTS.filter(q=>LL[q.slug][2]===p[0]);
+    pts.forEach(g=>g.classList.toggle("on",+g.dataset.p===i));
+    place.innerHTML=`<div><p class="t mute num">${fmtLL(p[2],p[3])}</p><h3 style="margin-top:8px">${p[0]}</h3><p class="mute">${p[1]} · ${list.length} ${list.length===1?"project":"projects"}${i===0?" · the studio":""}</p></div>
+      <ul>${list.map(q=>`<li><a href="#${q.slug}"><img src="${M[q.slug].cover}" alt="" loading="lazy"><span><span class="t mute num">${sheetNo(q)}</span><b>${esc(q.name)}</b></span></a></li>`).join("")}</ul>`;
+  }
+  pts.forEach(g=>{const i=+g.dataset.p; g.addEventListener("mouseenter",()=>show(i)); g.addEventListener("focus",()=>show(i)); g.addEventListener("click",()=>show(i)); g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();show(i);}});});
+  show(0);
+  const ro=$("#readout");
+  map.addEventListener("mousemove",e=>{const b=svg.getBoundingClientRect(), x=(e.clientX-b.left)/b.width, y=(e.clientY-b.top)/b.height; map.style.setProperty("--cx",(e.clientX-b.left)+"px"); map.style.setProperty("--cy",(e.clientY-b.top)+"px"); ro.textContent=fmtLL(LAT1-y*(LAT1-LAT0),LON0+x*(LON1-LON0));});
+  map.addEventListener("mouseleave",()=>ro.textContent="Move over the plan for coordinates");
+})();
+
+/* ---------- schedule ---------- */
+const peek=$("#peek"), peekI=$("#peekI");
+function wireSched(){ $$("#sched [data-peek]").forEach(a=>{a.addEventListener("mouseenter",()=>{peekI.src=a.dataset.peek;peek.classList.add("on");});a.addEventListener("mouseleave",()=>peek.classList.remove("on"));}); }
+$$(".filters button").forEach(b=>b.onclick=()=>{filt=+b.dataset.f;$$(".filters button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#sched").innerHTML=schedRows();wireSched();});
+wireSched();
+addEventListener("mousemove",e=>{peek.style.setProperty("--x",e.clientX+"px");peek.style.setProperty("--y",e.clientY+"px");},{passive:true});
+
+/* ---------- skyline ---------- */
+$$("#sky button").forEach(b=>{const pick=()=>{$$("#sky button").forEach(x=>x.setAttribute("aria-pressed",x===b));$("#yearbox").innerHTML=yearList(+b.dataset.y);}; b.onclick=pick; b.addEventListener("mouseenter",pick); b.addEventListener("focus",pick);});
+
+/* ---------- project sheet ---------- */
+function justified(g){
+  const narrow=innerWidth<820, target=narrow?1.5:3.1, rows=[];let cur=[],sum=0;
+  g.forEach((im,i)=>{const r=im[1]/im[2];cur.push([i,r]);sum+=r;if(sum>=target){rows.push([cur,sum]);cur=[];sum=0;}});
+  if(cur.length) rows.push([cur,sum]);
+  return rows.map(([row,s])=>`<div class="jr" style="${s<target*.62?`max-width:${Math.max(34,(s/target*100)).toFixed(0)}%`:""}">${row.map(([i,r])=>`<button data-lb="${i}" style="flex:${r.toFixed(3)} 1 0%;aspect-ratio:${g[i][1]}/${g[i][2]}" aria-label="Open photograph ${i+1} of ${g.length}"><img src="${g[i][0]}" alt="" loading="lazy"></button>`).join("")}</div>`).join("");
+}
+function vProject(p){
+  const m=M[p.slug], i=PROJECTS.indexOf(p), n=PROJECTS.length, pv=PROJECTS[(i-1+n)%n], nx=PROJECTS[(i+1)%n], ll=LL[p.slug];
+  return `<div class="pj-hero" id="pjHero"><img src="${m.hero}" alt="${esc(p.name)}"><div class="pj-ttl"><p class="t num">${sheetNo(p)} · ${p.sectors.map(s=>SNAME[s]).join(" · ")}</p><h1>${esc(p.name)}</h1></div></div>
+  <div class="pj-body">
+    <dl class="facts">
+      <div><dt class="t mute">Location</dt><dd>${esc(p.place)}</dd></div>
+      <div><dt class="t mute">Client</dt><dd>${esc(p.client)}</dd></div>
+      <div><dt class="t mute">${p.facts?"Size":"Building type"}</dt><dd>${p.facts?esc(p.facts):p.sectors.map(s=>SNAME[s]).join(", ")}</dd></div>
+      <div><dt class="t mute">Coordinates</dt><dd class="num">${fmtLL(ll[0],ll[1])}</dd></div>
+    </dl>
+    <div class="essay">
+      <div><p class="lead">${esc(p.text[0])}</p>${p.text[1]?`<p class="more">${esc(p.text[1])}</p>`:""}</div>
+      <div><p class="t mute" style="margin-bottom:14px">Recognition</p><ul>${p.awards.map(a=>{const k=a.lastIndexOf(", "),y=k>0&&/\d{4}/.test(a.slice(k+2));return `<li><span>${esc(y?a.slice(0,k):a)}</span><span class="num">${y?esc(a.slice(k+2)):""}</span></li>`}).join("")}</ul></div>
+    </div>
+    <div class="jg">${justified(m.gallery)}</div>
+    ${p.credit?`<p class="credit">${esc(p.credit)}</p>`:""}
+    <div class="nextp"><a href="#${pv.slug}"><span class="t mute">Previous · ${sheetNo(pv)}</span><b>${esc(pv.name)}</b></a><a href="#${nx.slug}"><span class="t mute">Next · ${sheetNo(nx)}</span><b>${esc(nx.name)}</b></a></div>
+  </div>`;
+}
+let openSlug=null, returnTo="work";
+function openProject(p){
+  const i=PROJECTS.indexOf(p), n=PROJECTS.length;
+  pj.innerHTML=vProject(p); pj.scrollTop=0; pj.style.setProperty("--k",0);
+  pj.classList.add("open"); document.body.classList.add("sheet-open"); document.body.style.overflow="hidden";
+  $("#tbNo").textContent=sheetNo(p); $("#tbK").textContent="Project"; $("#tbTitle").textContent=p.name; $("#tbLoc").textContent=fmtLL(LL[p.slug][0],LL[p.slug][1]);
+  $("#pjPrev").href="#"+PROJECTS[(i-1+n)%n].slug; $("#pjNext").href="#"+PROJECTS[(i+1)%n].slug; $("#pjClose").href="#"+returnTo;
+  $$("[data-lb]",pj).forEach(b=>b.onclick=()=>openLb(M[p.slug].gallery,+b.dataset.lb,p.name,b));
+  document.title=p.name+" · Richter Architects"; openSlug=p.slug; peek.classList.remove("on");
+  pj.focus({preventScroll:true});
+}
+function closeProject(){ if(!openSlug)return; pj.classList.remove("open"); document.body.classList.remove("sheet-open"); document.body.style.overflow=""; openSlug=null; document.title="Richter Architects"; $("#tbK").textContent="Title"; onScroll(); }
+pj.addEventListener("scroll",()=>{const h=$("#pjHero"); if(h&&motion) pj.style.setProperty("--k",Math.min(1,pj.scrollTop/(h.offsetHeight*.75)).toFixed(3));},{passive:true});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&openSlug&&!lb.classList.contains("open")) location.hash="#"+returnTo;});
+
+/* ---------- lightbox ---------- */
+const lb=$("#lb"), lbI=$("#lbI"); let lbG=[], lbK=0, lbFrom=null;
+function showLb(){const g=lbG[lbK]; lbI.style.opacity=0; const im=new Image(); im.onload=()=>{lbI.src=g[0];lbI.style.opacity=1;}; im.src=g[0]; $("#lbN").textContent=pad(lbK+1)+" / "+pad(lbG.length);}
+function openLb(g,k,title,from){lbG=g;lbK=k;lbFrom=from;$("#lbT").textContent=title;lb.classList.add("open");showLb();$("#lbX").focus();}
+function closeLb(){if(!lb.classList.contains("open"))return;lb.classList.remove("open");if(lbFrom)lbFrom.focus();}
+function stepLb(d){lbK=(lbK+d+lbG.length)%lbG.length;showLb();}
+$("#lbX").onclick=closeLb; $("#lbP").onclick=()=>stepLb(-1); $("#lbF").onclick=()=>stepLb(1);
+addEventListener("keydown",e=>{if(!lb.classList.contains("open"))return; if(e.key==="Escape")closeLb(); if(e.key==="ArrowRight")stepLb(1); if(e.key==="ArrowLeft")stepLb(-1);});
+let lsx=null; lb.addEventListener("touchstart",e=>lsx=e.touches[0].clientX,{passive:true});
+lb.addEventListener("touchend",e=>{if(lsx===null)return;const d=e.changedTouches[0].clientX-lsx;if(Math.abs(d)>50)stepLb(d<0?1:-1);lsx=null;});
+
+/* ---------- sheet list (small screens) ---------- */
+const list=$("#list"), tbMenu=$("#tbMenu");
+const closeList=()=>{list.classList.remove("open");tbMenu.setAttribute("aria-expanded","false");tbMenu.textContent="Sheets";};
+tbMenu.onclick=()=>{const o=!list.classList.contains("open");list.classList.toggle("open",o);tbMenu.setAttribute("aria-expanded",o);tbMenu.textContent=o?"Close":"Sheets";};
+
+/* ---------- routing ---------- */
+function go(first){
+  const h=(location.hash||"#cover").slice(1); closeList(); closeLb();
+  if(BY[h]){ openProject(BY[h]); return; }
+  closeProject();
+  const el=document.getElementById(SHEETS.some(s=>s[0]===h)?h:"cover");
+  const y=el.getBoundingClientRect().top+scrollY-parseFloat(getComputedStyle(root).getPropertyValue("--top"));
+  if(!(first&&h==="cover")) window.scrollTo({top:y,behavior:(motion&&!first)?"smooth":"auto"});
+}
+addEventListener("hashchange",()=>go(false));
+
+/* ---------- scroll engine ---------- */
+let tick=false, cur=-1;
+const secs=SHEETS.map(s=>document.getElementById(s[0]));
+function onScroll(){
+  const y=scrollY, vh=innerHeight, max=Math.max(1,document.documentElement.scrollHeight-vh);
+  $("#rulerB").style.transform=`scaleX(${(y/max).toFixed(4)})`;
+  $$("#rulerLine i").forEach((t,i)=>t.style.left=(secs[i].offsetTop/document.documentElement.scrollHeight*100)+"%");
+  let i=0; secs.forEach((s,j)=>{if(s.getBoundingClientRect().top<vh*.45)i=j;});
+  if(!openSlug){
+    if(i!==cur||$("#tbNo").textContent.length>5||$("#tbNo").textContent[2]!=="0"){cur=i;$("#tbNo").textContent="A-00"+i;$("#tbTitle").textContent=SHEETS[i][1];$("#tbLoc").textContent="27.80° N, 97.40° W";$$("#tbNav a").forEach((a,j)=>a.classList.toggle("on",j===i));returnTo=SHEETS[i][0]==="cover"?"cover":SHEETS[i][0];}
+    $("#rulerNote").textContent=`Sheet ${i+1} of ${SHEETS.length}`;
+  }
+  const c=$("#creed"); if(c){const b=c.getBoundingClientRect(),ws=c.children,k=motion?Math.max(0,Math.min(1,(vh*.8-b.top)/(vh*.42+b.height))):1,n=Math.round(k*ws.length);for(let j=0;j<ws.length;j++)ws[j].classList.toggle("lit",j<n);}
+}
+addEventListener("scroll",()=>{if(!tick){tick=true;requestAnimationFrame(()=>{onScroll();tick=false;});}},{passive:true});
+addEventListener("resize",onScroll);
+onScroll(); go(true);
+</script>
+</body>
+</html>
