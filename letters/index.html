@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Richter Architects Letters Concept</title>
+<meta name="description" content="Richter Architects, Corpus Christi, Texas. Architecture, master planning, programming and interior design.">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&family=League+Spartan:wght@700&family=Urbanist:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout idea: the logo is the building. Its letters are windows, its red block is the door, and a four-sided frame holds every view. */
+  --paper:#f5f4f0; --ink:#0d0d0c; --red:#ff0000; --stone:#8b8880;
+  --mast:"League Spartan","Futura","Century Gothic","Avenir Next",sans-serif;
+  --display:"Urbanist","Century Gothic","Avenir Next",sans-serif;
+  --body:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
+  --fr:68px; --gut:clamp(18px,3.6vw,56px);
+  --ease:cubic-bezier(.16,1,.3,1); --ease2:cubic-bezier(.76,0,.24,1);
+  --bg:var(--paper); --fg:var(--ink); --mute:rgba(13,13,12,.56); --line:rgba(13,13,12,.16);
+  color-scheme:light;
+}
+body[data-tone="dark"]{--fg:#fff;--mute:rgba(255,255,255,.72);--line:rgba(255,255,255,.3)}
+body[data-tone="red"]{--bg:var(--red);--fg:#fff;--mute:rgba(255,255,255,.82);--line:rgba(255,255,255,.45)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased;transition:background-color .6s,color .5s;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none;cursor:pointer}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+body[data-tone="red"] :focus-visible{outline-color:#fff}
+ul{list-style:none}
+.label{font:500 11px/1.4 var(--body);letter-spacing:.2em;text-transform:uppercase}
+.mute{color:var(--mute)} .num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--display);font-weight:200;letter-spacing:-.02em;line-height:1;text-wrap:balance}
+
+/* the frame: four fixed corners and a mat */
+.bar{position:fixed;left:0;right:0;z-index:50;height:var(--fr);display:flex;align-items:center;justify-content:space-between;padding:0 var(--gut);background:var(--bg);transition:background-color .6s,color .5s}
+body[data-tone="dark"] .bar{background:transparent}
+.bar.top{top:0} .bar.bot{bottom:0}
+.bar a.nv{display:inline-flex;align-items:center;gap:9px;font:500 11px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;padding:14px 0;opacity:.5;transition:opacity .3s}
+.bar a.nv:hover,.bar a.nv.cur{opacity:1}
+.bar a.nv.cur::before{content:"";width:7px;height:7px;background:var(--red)}
+body[data-tone="red"] .bar a.nv.cur::before,body[data-tone="dark"] .bar a.nv.cur::before{background:#fff}
+.bar .logo img{height:36px;width:auto}
+.prog{position:fixed;left:0;right:0;top:0;height:2px;background:var(--red);z-index:60;transform:scaleX(0);transform-origin:left}
+
+/* flood: a photograph escapes its letter and fills the room */
+#flood{position:fixed;inset:0;z-index:0;background:#111;opacity:0;transition:opacity .7s;pointer-events:none}
+#flood.on{opacity:1}
+#flood img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.08);transition:opacity .8s,transform 6s cubic-bezier(.2,.6,.2,1)}
+#flood img.on{opacity:1;transform:none}
+#flood::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.18) 30%,rgba(0,0,0,.22) 60%,rgba(0,0,0,.6))}
+main{position:relative;z-index:1}
+
+/* red door: the logo block sweeps across between views */
+.wipe{position:fixed;inset:0;z-index:90;background:var(--red);transform:translateX(-101%);display:grid;place-items:center;pointer-events:none}
+.wipe img{height:54px;width:auto}
+.wipe.in{transform:none;transition:transform .55s var(--ease2);pointer-events:auto}
+.wipe.out{transform:translateX(101%);transition:transform .65s var(--ease2)}
+.wipe.start{transform:none}
+
+/* home wall */
+.home{height:100vh;height:100svh;min-height:520px;display:flex;flex-direction:column;justify-content:center;padding:var(--fr) var(--gut)}
+.wall{--fs:min(12.4vw,27vh);display:flex;flex-direction:column;gap:calc(var(--fs)*.16)}
+.row{display:flex;justify-content:space-between}
+.L{display:block;overflow:hidden;padding:.06em 0 0;transition:opacity .6s}
+.L b{display:block;font:700 var(--fs)/.92 var(--mast);padding-top:.08em;background:#999 center/cover no-repeat;-webkit-background-clip:text;background-clip:text;color:transparent;transform:translateY(110%);transition:transform 1.2s var(--ease) calc(var(--i)*55ms),color .4s;animation:pan 16s ease-in-out infinite alternate;animation-delay:calc(var(--i)*-1.3s)}
+.wall.in .L b{transform:none}
+@keyframes pan{from{background-position:25% 30%}to{background-position:75% 70%}}
+.wall.glow .L{opacity:.2} .wall.glow .L.on{opacity:1}
+.wall.flood .L{opacity:1}
+.wall.flood .L b{background-image:none!important;background-color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.8);color:transparent}
+.wall.flood .L.on b{color:#fff;-webkit-text-stroke:0}
+.cap{height:96px;margin-top:clamp(20px,4vh,48px);text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cap b{font:300 clamp(20px,2.3vw,34px)/1.15 var(--display);letter-spacing:-.01em}
+.cap .w{display:inline-block;overflow:hidden;vertical-align:top}
+.cap .w>span{display:inline-block;animation:rise .8s var(--ease) both}
+@keyframes rise{from{transform:translateY(105%)}to{transform:none}}
+
+/* work: the index is a paragraph */
+.work{min-height:100vh;padding:calc(var(--fr) + clamp(20px,5vh,60px)) var(--gut) calc(var(--fr) + 40px);text-align:center}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 26px;margin-bottom:clamp(28px,6vh,64px)}
+.chips button{font:500 11px/1 var(--body);letter-spacing:.18em;text-transform:uppercase;padding:10px 0;color:var(--mute);border-bottom:1px solid transparent;transition:color .3s}
+.chips button:hover{color:var(--fg)} .chips button[aria-pressed="true"]{color:var(--fg);border-color:var(--red)}
+.para{font:200 clamp(24px,3.5vw,58px)/1.28 var(--display);letter-spacing:-.02em;max-width:1500px;margin:0 auto}
+.para a{transition:opacity .45s,color .3s;display:inline}
+.para sup{font:500 10px var(--body);letter-spacing:.1em;color:var(--red);margin-right:.5em;vertical-align:top;position:relative;top:.9em}
+body[data-tone="dark"] .para sup{color:#fff}
+.para i{font-style:normal;color:var(--red);margin:0 .32em;font-weight:300;transition:opacity .45s}
+.para.hov a,.para.hov i{opacity:.22} .para.hov a.on{opacity:1}
+.para a.off{opacity:.12;pointer-events:none}
+.para a.off+i{opacity:.12}
+
+/* project: a walk through the building, left to right */
+.walk{height:100vh;height:100svh;display:flex;align-items:center;gap:clamp(10px,1.4vw,22px);overflow-x:auto;overflow-y:hidden;padding:var(--fr) var(--gut);scrollbar-width:none}
+.walk::-webkit-scrollbar{display:none}
+.walk>*{flex:none}
+.intro{width:min(84vw,980px);max-height:100%;overflow-y:auto;padding-right:clamp(20px,5vw,90px);scrollbar-width:none}
+.intro h1{font-size:clamp(38px,5.6vw,96px);margin:18px 0 26px}
+.intro .cols{display:grid;grid-template-columns:1fr 1.5fr;gap:clamp(20px,3vw,50px)}
+.intro dt{font:500 10px var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.intro dd{font-size:14px;margin:2px 0 14px}
+.intro p{font-size:15px;line-height:1.6;margin-bottom:12px}
+.intro .hint{margin-top:18px;display:inline-flex;align-items:center;gap:14px}
+.intro .hint::after{content:"";width:60px;height:1px;background:var(--red);animation:nudge 1.8s var(--ease2) infinite}
+@keyframes nudge{0%{transform:scaleX(0);transform-origin:left}50%{transform:scaleX(1);transform-origin:left}51%{transform-origin:right}100%{transform:scaleX(0);transform-origin:right}}
+.shot{height:calc(100vh - var(--fr)*2 - 24px);height:calc(100svh - var(--fr)*2 - 24px);overflow:hidden;clip-path:inset(0 100% 0 0);transition:clip-path 1.2s var(--ease2);background:rgba(128,128,128,.14);max-width:92vw}
+.shot.in{clip-path:inset(0)}
+.shot img{width:100%;height:100%;object-fit:cover;transform:scale(1.12);transition:transform 1.8s var(--ease)}
+.shot.in img{transform:none}
+.nextp{width:min(70vw,760px);padding-left:clamp(30px,6vw,110px);display:block}
+.nextp b{display:block;font:200 clamp(34px,5vw,84px)/1.02 var(--display);letter-spacing:-.02em;margin:16px 0 18px}
+.arrow{display:inline-flex;align-items:center;gap:14px}
+.arrow::after{content:"";width:34px;height:1px;background:currentColor;transition:width .5s var(--ease)}
+a:hover .arrow::after,a.arrow:hover::after{width:64px}
+
+/* scroll pages */
+.page{padding:calc(var(--fr) + clamp(30px,6vh,70px)) var(--gut) calc(var(--fr) + 60px);text-align:center}
+.word{display:block;font:700 var(--ws)/.9 var(--mast);padding-top:.1em;background:#999 center 40%/cover no-repeat;-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.04em;margin-right:-.04em;animation:pan 20s ease-in-out infinite alternate}
+.lead{font:200 clamp(24px,3.2vw,52px)/1.2 var(--display);letter-spacing:-.015em;max-width:19em;margin:clamp(34px,6vh,70px) auto 0}
+.blk{margin-top:clamp(70px,12vh,150px)}
+[data-rv]{opacity:0;transform:translateY(24px);transition:opacity 1s var(--ease) var(--d,0ms),transform 1.2s var(--ease) var(--d,0ms)}
+[data-rv].in{opacity:1;transform:none}
+.people{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(12px,1.8vw,28px);max-width:1300px;margin:26px auto 0}
+.people .pf{aspect-ratio:2/3;overflow:hidden;background:rgba(128,128,128,.14)}
+.people img{width:100%;height:100%;object-fit:cover;transition:transform 1.4s var(--ease)}
+.people figure:hover img{transform:scale(1.04)}
+.people b{display:block;font:400 clamp(15px,1.3vw,19px)/1.25 var(--display);margin-top:14px}
+.people span{font-size:12px;color:var(--mute)}
+.svc{max-width:760px;margin:20px auto 0}
+.svc li{padding:14px 0;border-top:1px solid var(--line);font:300 clamp(20px,2.2vw,32px)/1.25 var(--display)}
+.svc li:last-child{border-bottom:1px solid var(--line)}
+.photo{max-width:1300px;margin-inline:auto;aspect-ratio:16/9;overflow:hidden;clip-path:inset(0 50% 0 50%);transition:clip-path 1.4s var(--ease2);opacity:1!important;transform:none!important}
+.photo.in{clip-path:inset(0)}
+.photo img{width:100%;height:100%;object-fit:cover}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,50px);max-width:1200px;margin-inline:auto}
+.three b{display:block;font:200 clamp(40px,5vw,80px)/1 var(--display);margin-bottom:12px}
+.three h3{font:400 17px/1.3 var(--display);letter-spacing:0;margin-bottom:6px}
+.three p{font-size:14px;color:var(--mute)}
+.sign{margin-top:clamp(70px,12vh,150px);font-size:13px;color:var(--mute)}
+
+/* recognition: every honor is a brick */
+.read{min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;margin-top:clamp(20px,4vh,44px)}
+.read b{font:200 clamp(44px,6vw,96px)/1 var(--display);letter-spacing:-.03em}
+.read strong{font:400 clamp(16px,1.5vw,21px)/1.3 var(--display)}
+.bricks{display:flex;flex-direction:column-reverse;gap:5px;max-width:1300px;margin:26px auto 0}
+.course{display:flex;gap:5px;justify-content:center}
+.brick{flex:0 0 calc((100% - var(--n)*5px + 5px)/var(--n));height:clamp(30px,3.6vw,50px);border:1px solid var(--line);font:500 10px/1 var(--body);letter-spacing:.12em;color:var(--mute);opacity:0;transform:translateY(-22px);transition:background-color .25s,color .25s,border-color .25s}
+.bricks.in .brick{animation:lay .7s var(--ease) both;animation-delay:calc(var(--k)*16ms)}
+@keyframes lay{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:none}}
+.brick.half{flex-basis:calc(((100% - var(--n)*5px + 5px)/var(--n) - 5px)/2);pointer-events:none;border-style:dashed}
+.brick:hover,.brick:focus-visible,.brick.on{background:var(--red);border-color:var(--red);color:#fff}
+.roll{columns:3 280px;column-gap:40px;max-width:1300px;margin:0 auto;text-align:left;font-size:13px;line-height:1.5}
+.roll div{break-inside:avoid;padding:10px 0;border-top:1px solid var(--line)}
+.roll b{font:400 20px var(--display);display:block;margin-bottom:4px}
+.roll span{color:var(--mute)}
+
+/* contact: step inside the red block */
+.visit{min-height:100vh;min-height:100svh;display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,90px);align-items:center;padding:calc(var(--fr) + 24px) var(--gut)}
+.visit h1{font-size:clamp(40px,5.4vw,92px);margin-bottom:22px}
+.visit address{font:300 clamp(17px,1.5vw,22px)/1.45 var(--display);font-style:normal;margin-bottom:clamp(20px,4vh,40px)}
+.visit address a{border-bottom:1px solid var(--line)}
+.visit form{display:flex;flex-direction:column;gap:18px;max-width:620px}
+.visit .f2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.visit label{display:flex;flex-direction:column;gap:6px;font:500 10px/1.4 var(--body);letter-spacing:.18em;text-transform:uppercase}
+.visit input,.visit select,.visit textarea{font:400 16px/1.4 var(--body);letter-spacing:0;text-transform:none;color:#fff;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.6);padding:8px 0;border-radius:0;width:100%;resize:vertical}
+.visit select option{color:#111}
+.visit input:focus,.visit select:focus,.visit textarea:focus{outline:0;border-bottom:2px solid #fff;padding-bottom:7px}
+.visit .bad{border-bottom:2px dashed #fff}
+.visit .fs{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.visit .send{background:#fff;color:var(--red);font:500 11px/1 var(--body);letter-spacing:.2em;text-transform:uppercase;padding:17px 30px;transition:transform .4s var(--ease)}
+.visit .send:hover{transform:translateX(6px)}
+.visit #cf-note{font-size:13px;flex:1 1 240px;min-height:1em}
+.map{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.map iframe,.map img{width:100%;height:min(62vh,640px);border:0;object-fit:cover;background:#b00}
+.map{position:relative}
+.map .pin{position:absolute;left:18px;top:18px;right:18px;max-width:330px;background:#fff;color:var(--ink);padding:16px 18px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.map .pin i{width:10px;height:10px;background:var(--red)}
+.map .pin b{font:400 17px var(--display)}
+.map .pin span{grid-column:2;font-size:12px;color:rgba(13,13,12,.6);line-height:1.4}
+@media (max-width:820px){
+  :root{--fr:56px}
+  .bar .logo img{height:30px} .bar a.nv{font-size:10px;letter-spacing:.16em}
+  .wall{--fs:min(21.5vw,15vh)}
+  .walk{display:block;height:auto;overflow:visible;padding:calc(var(--fr) + 20px) var(--gut) calc(var(--fr) + 30px)}
+  .intro{width:auto;max-height:none;padding:0 0 26px} .intro .cols{grid-template-columns:1fr}
+  .intro .hint{display:none}
+  .shot{height:auto;max-width:none;margin-bottom:10px;clip-path:inset(0 0 100% 0)} .shot img{height:auto}
+  .nextp{width:auto;padding:40px 0 0}
+  .three{grid-template-columns:1fr} .people{grid-template-columns:1fr 1fr} .visit{grid-template-columns:1fr!important}
+  .para sup{top:.5em}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-delay:0ms!important;transition-delay:0ms!important}
+  [data-rv],.brick{opacity:1!important;transform:none!important} .shot,.photo{clip-path:none!important} .L b{transform:none!important}
+}
+</style>
+</head>
+<body data-tone="light">
+<div id="flood" aria-hidden="true"><img alt=""><img alt=""></div>
+<div class="prog" id="prog"></div>
+<header class="bar top">
+  <a class="logo" href="#home" data-go="home" aria-label="Richter Architects, home"><img src="img/logo.png" alt="Richter Architects" width="144" height="36"></a>
+  <a class="nv" href="#work" data-go="work">Work</a>
+</header>
+<nav class="bar bot" aria-label="Primary">
+  <a class="nv" href="#studio" data-go="studio">Studio</a>
+  <a class="nv" href="#recognition" data-go="recognition">Recognition</a>
+  <a class="nv" href="#contact" data-go="contact">Contact</a>
+</nav>
+<main id="main"></main>
+<div class="wipe start" id="wipe" aria-hidden="true"><img src="img/logo.png" alt=""></div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const TOUCH=matchMedia('(hover:none)').matches;
+const main=$('#main'), wipe=$('#wipe'), flood=$('#flood'), prog=$('#prog');
+const pad=n=>String(n).padStart(2,'0');
+const P=PROJECTS.filter(p=>IMG[p.slug]); P.forEach((p,i)=>{p.i=i;p.no=pad(i+1)});
+const bySlug=Object.fromEntries(P.map(p=>[p.slug,p]));
+const hero=p=>`img/${p.slug}/hero.jpg`, cover=p=>`img/${p.slug}/cover.jpg`;
+const CHRON=[...AWARDS].reverse().flatMap(y=>y[1].map(a=>({y:y[0],a:a[0],p:a[1]})));
+const TOTAL=CHRON.length;
+const words=t=>t.split(' ').map((w,i)=>`<span class="w"><span style="animation-delay:${i*40}ms">${esc(w)}</span></span>`).join(' ');
+try{history.scrollRestoration='manual'}catch(e){}
+
+/* ---------- flood ---------- */
+let fk=0;
+function floodOn(src){const im=$$('img',flood);if(im[fk].getAttribute('src')!==src){fk^=1;im[fk].src=src;im[fk].classList.add('on');im[fk^1].classList.remove('on')}flood.classList.add('on');document.body.dataset.tone='dark'}
+function floodOff(){flood.classList.remove('on');document.body.dataset.tone=view==='contact'?'red':'light'}
+
+/* ---------- views ---------- */
+function vHome(){
+  const rows=innerWidth<821?['RICH','TER','ARCHI','TECTS']:['RICHTER','ARCHITECTS'];
+  let k=0;
+  return `<section class="home"><div class="wall" id="wall" aria-label="Richter Architects. Each letter opens a project.">${rows.map(r=>`<div class="row">${[...r].map(ch=>{const p=P[k%P.length],i=k++;return `<a class="L" href="#${p.slug}" data-letter="${i}" aria-label="${ch}. ${esc(p.name)}, ${esc(p.place)}"><b style="--i:${i};background-image:url(${cover(p)})">${ch}</b></a>`}).join('')}</div>`).join('')}</div>
+  <div class="cap" id="cap" aria-live="polite"><span class="label mute">Architecture, master planning and interiors. Corpus Christi, Texas.</span><span class="label">${TOUCH?'Tap a letter':'Each letter is a window. Move across them.'}</span></div></section>`;
+}
+function vWork(){
+  return `<section class="work"><div class="chips" id="chips"><button data-s="-1" aria-pressed="true">All ${P.length}</button>${SECTORS.map((s,i)=>{const n=P.filter(p=>p.sectors.includes(i)).length;return n?`<button data-s="${i}" aria-pressed="false">${esc(s)} ${n}</button>`:''}).join('')}</div>
+  <p class="para" id="para">${P.map((p,i)=>`<a href="#${p.slug}" data-go="${p.slug}" data-flood="${hero(p)}" data-s="${p.sectors.join(' ')}"><sup class="num">${p.no}</sup>${esc(p.name)}</a>${i<P.length-1?'<i>/</i>':''}`).join(' ')}</p>
+  <p class="label mute" style="margin-top:clamp(28px,6vh,60px)">${TOUCH?'Tap a name to walk through the building':'Rest on a name to see it. Click to walk through the building.'}</p></section>`;
+}
+function vProject(p){
+  const m=IMG[p.slug], nx=P[(p.i+1)%P.length];
+  const shots=[[hero(p),...m.hero],...m.g.map(x=>[`img/${p.slug}/${x[0]}.jpg`,x[1],x[2]])];
+  return `<section class="walk" id="walk" tabindex="0" aria-label="${esc(p.name)}. Scroll sideways through the images.">
+  <div class="intro"><span class="label num">${p.no} / ${pad(P.length)} <span class="mute">&nbsp; ${esc(p.place)}</span></span><h1>${esc(p.name)}</h1>
+    <div class="cols"><dl><dt>Client</dt><dd>${esc(p.client)}</dd><dt>Type</dt><dd>${p.sectors.map(s=>esc(SECTORS[s])).join(', ')}</dd>${p.facts?`<dt>Size</dt><dd>${esc(p.facts)}</dd>`:''}${p.awards.length?`<dt>Recognition</dt><dd>${p.awards.map(esc).join('<br>')}</dd>`:''}</dl>
+    <div>${p.text.map(t=>`<p>${esc(t)}</p>`).join('')}${p.credit?`<p class="mute" style="font-size:12px">${esc(p.credit)}</p>`:''}<span class="label hint">Walk through</span></div></div>
+  </div>
+  ${shots.map((s,i)=>`<figure class="shot" style="aspect-ratio:${s[1]}/${s[2]}"><img src="${s[0]}" alt="${esc(p.name)}, view ${i+1}" ${i>1?'loading="lazy"':''} decoding="async"></figure>`).join('')}
+  <a class="nextp" href="#${nx.slug}" data-go="${nx.slug}"><span class="label mute">Next building, ${nx.no}</span><b>${esc(nx.name)}</b><span class="label arrow">${esc(nx.place)}</span></a>
+</section>`;
+}
+const word=(t,img)=>`<span class="word" style="--ws:min(${(88/(t.length*.74)).toFixed(1)}vw,34vh);background-image:url(${img})" role="heading" aria-level="1">${t}</span>`;
+function vStudio(){
+  return `<section class="page">${word('STUDIO','img/extra/richter-architects-office-03.jpg')}
+  <p class="lead" data-rv>Richter Architects is a long-established practice. We believe quality design and lasting value are built through close relationships with our clients, across every building type and sector we serve.</p>
+  <div class="blk"><span class="label mute" data-rv>Leadership</span>
+    <div class="people">${LEADERSHIP.map((l,i)=>`<figure data-rv style="--d:${i*80}ms"><div class="pf"><img src="${l.img}" alt="${esc(l.name)}" loading="lazy"></div><figcaption><b>${esc(l.name)}</b><span>${esc(l.role)}</span></figcaption></figure>`).join('')}</div></div>
+  <div class="blk"><span class="label mute" data-rv>Services</span><ul class="svc">${SERVICES.map((s,i)=>`<li data-rv style="--d:${i*50}ms">${esc(s)}</li>`).join('')}</ul></div>
+  <div class="blk photo" data-rv><img src="img/extra/about-us-14.jpg" alt="The Richter Architects team in the studio" loading="lazy"></div>
+  <div class="blk three">
+    <div data-rv><b class="num">2011</b><h3>Architecture Firm Award</h3><p>Texas Society of Architects</p></div>
+    <div data-rv style="--d:90ms"><b class="num">2020</b><h3>Firm of the Year</h3><p>AIA Corpus Christi</p></div>
+    <div data-rv style="--d:180ms"><b class="num">2021</b><h3>Medal for Lifetime Achievement</h3><p>Texas Society of Architects, to David Richter, FAIA and Elizabeth Chu Richter, FAIA</p></div>
+  </div>
+  <p class="sign">201 South Upper Broadway, Corpus Christi, Texas 78401 &nbsp; 361.882.1288</p></section>`;
+}
+function vRecognition(){
+  const years=[...AWARDS];
+  return `<section class="page">${word('HONORS','img/brooks-county-safety-rest-area/hero.jpg')}
+  <div class="read" id="read"><b class="num">${TOTAL}</b><strong>design honors since 1985</strong><span class="label mute">${TOUCH?'Tap a brick':'Every brick is an award. Run a hand along the wall.'}</span></div>
+  <div class="bricks" id="bricks"></div>
+  <div class="blk three">
+    <div data-rv><b class="num">1999</b><h3>National AIA Honor Award</h3><p>Brooks County Safety Rest Area</p></div>
+    <div data-rv style="--d:90ms"><b class="num">2020</b><h3>AIA COTE Top Ten</h3><p>US Land Port of Entry, Columbus, New Mexico</p></div>
+    <div data-rv style="--d:180ms"><b class="num">2022</b><h3>GSA Honor Awards</h3><p>Architecture and Landscape Architecture, Columbus, New Mexico</p></div>
+  </div>
+  <div class="blk"><span class="label mute">Full record</span><div class="roll" style="margin-top:22px">${years.map(y=>`<div><b class="num">${y[0]}</b>${y[1].map(a=>`${esc(a[0])}<br><span>${esc(a[1])}</span>`).join('<br>')}</div>`).join('')}</div></div></section>`;
+}
+function drawBricks(){
+  const box=$('#bricks'); if(!box) return;
+  const n=innerWidth<700?5:innerWidth<1100?7:10; let i=0,row=0,html='';
+  while(i<TOTAL){const odd=row%2, cnt=odd?n-1:n; let h='';
+    if(odd)h+=`<span class="brick half" style="--n:${n};--k:${i}"></span>`;
+    for(let j=0;j<cnt&&i<TOTAL;j++,i++){const a=CHRON[i];h+=`<button class="brick num" style="--n:${n};--k:${i}" data-b="${i}" aria-label="${a.y}, ${esc(a.a)}, ${esc(a.p)}">${a.y}</button>`}
+    if(odd)h+=`<span class="brick half" style="--n:${n};--k:${i}"></span>`;
+    html+=`<div class="course">${h}</div>`; row++}
+  box.innerHTML=html; requestAnimationFrame(()=>box.classList.add('in'));
+  const read=$('#read'), show=b=>{const a=CHRON[+b.dataset.b];$$('.brick.on',box).forEach(x=>x.classList.remove('on'));b.classList.add('on');read.innerHTML=`<b class="num">${a.y}</b><strong>${esc(a.a)}</strong><span class="mute">${esc(a.p)}</span>`};
+  box.onmouseover=box.onfocusin=box.onclick=e=>{const b=e.target.closest('[data-b]');b&&show(b)};
+}
+function vContact(){
+  const live=/github\.io$|richterarchitects\.com$|^localhost$/.test(location.hostname);
+  const q='201+South+Upper+Broadway+Corpus+Christi+TX+78401';
+  return `<section class="visit">
+  <div class="vl">
+    <h1>Begin a project</h1>
+    <address>201 South Upper Broadway<br>Corpus Christi, Texas 78401<br><a href="tel:+13618821288" class="num">361.882.1288</a></address>
+    <form id="cform" novalidate>
+      <div class="f2"><label for="cf-name">Name<input id="cf-name" name="name" autocomplete="name" required></label><label for="cf-email">Email<input id="cf-email" name="email" type="email" autocomplete="email" required></label></div>
+      <div class="f2"><label for="cf-phone">Phone, optional<input id="cf-phone" name="phone" type="tel" autocomplete="tel"></label><label for="cf-type">Project type<select id="cf-type" name="type"><option value="">Select one</option>${SECTORS.map(x=>`<option>${esc(x)}</option>`).join('')}<option>Other</option></select></label></div>
+      <label for="cf-msg">Tell us about the project<textarea id="cf-msg" name="message" rows="3" required></textarea></label>
+      <div class="fs"><button type="submit" class="send">Send message</button><p id="cf-note" role="status"></p></div>
+    </form>
+  </div>
+  <div class="map">${live?`<iframe title="Map to Richter Architects" loading="lazy" src="https://www.google.com/maps?q=${q}&z=16&output=embed"></iframe>`:`<img src="img/extra/contact-01.jpg" alt="Entrance to the Richter Architects studio"><div class="pin"><i></i><b>201 South Upper Broadway</b><span>The live Google map loads here on the hosted site. This preview blocks outside embeds.</span></div>`}
+    <a class="label arrow" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Open in Google Maps</a></div>
+  </section>`;
+}
+function contactInit(){
+  const f=$('#cform'),note=$('#cf-note');
+  f.addEventListener('submit',e=>{e.preventDefault();
+    const bad=['cf-name','cf-email','cf-msg'].map(id=>$('#'+id)).filter(el=>!el.value.trim()||(el.type==='email'&&!/^\S+@\S+\.\S+$/.test(el.value)));
+    $$('input,textarea',f).forEach(el=>el.classList.toggle('bad',bad.includes(el)));
+    if(bad.length){note.textContent='Please add your name, a valid email and a short message.';bad[0].focus();return}
+    note.textContent='This form is a preview and has not sent anything. On the live site it will deliver to the firm inbox. For now, please call 361.882.1288.';
+  });
+}
+/* ---------- home behaviour ---------- */
+let cyc=null, act=-1, hovering=false;
+function capFor(i){const p=P[i%P.length];$('#cap').innerHTML=`<span class="label num mute">${p.no} / ${pad(P.length)}</span><b>${words(p.name)}</b><span class="label">${esc(p.place)}${TOUCH?' &nbsp; Tap again to enter':''}</span>`}
+function letter(i,mode){const w=$('#wall');if(!w)return;act=i;$$('.L',w).forEach(l=>l.classList.toggle('on',+l.dataset.letter===i));
+  w.classList.toggle('flood',mode==='flood');w.classList.toggle('glow',mode==='glow');capFor(i);
+  mode==='flood'?floodOn(hero(P[i%P.length])):floodOff()}
+function homeInit(){
+  const w=$('#wall'); requestAnimationFrame(()=>requestAnimationFrame(()=>w.classList.add('in')));
+  const n=$$('.L',w).length; let c=-1; hovering=false; act=-1;
+  clearInterval(cyc); if(!RM) cyc=setInterval(()=>{if(hovering||!$('#wall'))return;c=(c+1)%n;letter(c,'glow')},2600);
+  $$('.L',w).forEach(l=>{const i=+l.dataset.letter;
+    l.addEventListener('mouseenter',()=>{if(TOUCH)return;hovering=true;letter(i,'flood')});
+    l.addEventListener('focus',()=>{hovering=true;letter(i,'flood')});
+    l.addEventListener('click',e=>{e.preventDefault();if(TOUCH&&!(hovering&&act===i)){hovering=true;letter(i,'flood');return}go(P[i%P.length].slug)});
+  });
+  w.addEventListener('mouseleave',()=>{if(TOUCH)return;hovering=false;w.classList.remove('flood');floodOff()});
+}
+
+/* ---------- work behaviour ---------- */
+function workInit(){
+  const para=$('#para');
+  $$('a',para).forEach(a=>{
+    a.addEventListener('mouseenter',()=>{if(TOUCH)return;para.classList.add('hov');a.classList.add('on');floodOn(a.dataset.flood)});
+    a.addEventListener('mouseleave',()=>{para.classList.remove('hov');a.classList.remove('on');floodOff()});
+  });
+  $('#chips').onclick=e=>{const b=e.target.closest('button');if(!b)return;const s=b.dataset.s;
+    $$('#chips button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+    $$('a',para).forEach(a=>a.classList.toggle('off',s!=='-1'&&!a.dataset.s.split(' ').includes(s)))};
+}
+
+/* ---------- walk behaviour ---------- */
+let walk=null,tgt=null,pend=[];
+function walkInit(){
+  walk=$('#walk'); tgt=null;
+  walk.addEventListener('wheel',e=>{if(innerWidth<821)return;const it=e.target.closest('.intro');
+    if(it&&it.scrollHeight>it.clientHeight+2&&((e.deltaY>0&&it.scrollTop+it.clientHeight<it.scrollHeight-1)||(e.deltaY<0&&it.scrollTop>0)))return;
+    if(Math.abs(e.deltaY)>=Math.abs(e.deltaX)){e.preventDefault();const max=walk.scrollWidth-walk.clientWidth;tgt=Math.max(0,Math.min(max,(tgt==null?walk.scrollLeft:tgt)+e.deltaY*1.15))}},{passive:false});
+  walk.addEventListener('touchstart',()=>tgt=null,{passive:true});
+  walk.addEventListener('pointerdown',()=>tgt=null);
+  pend=$$('.shot',walk); if(RM){pend.forEach(s=>s.classList.add('in'));pend=[]}
+}
+addEventListener('keydown',e=>{
+  if(walk&&document.body.contains(walk)&&innerWidth>820&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){const max=walk.scrollWidth-walk.clientWidth;tgt=Math.max(0,Math.min(max,(tgt==null?walk.scrollLeft:tgt)+(e.key==='ArrowRight'?1:-1)*innerWidth*.7))}
+  if(e.key==='Escape'&&bySlug[view])go('work');
+});
+
+/* ---------- reveal ---------- */
+const io=('IntersectionObserver' in window)&&!RM?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1}):null;
+
+/* ---------- router: clicks are handled here, never left to the browser ---------- */
+let view=null, busy=false;
+const VIEWS={home:vHome,work:vWork,studio:vStudio,recognition:vRecognition,contact:vContact};
+function render(name){
+  const p=bySlug[name]; if(!p&&!VIEWS[name]) name='home';
+  view=name; clearInterval(cyc); walk=null; tgt=null;
+  flood.classList.remove('on'); document.body.dataset.tone=name==='contact'?'red':'light';
+  main.innerHTML=p?vProject(p):VIEWS[name]();
+  window.scrollTo(0,0); prog.style.transform='scaleX(0)';
+  $$('.bar a.nv').forEach(a=>a.classList.toggle('cur',a.dataset.go===name||(p&&a.dataset.go==='work')));
+  document.title=(p?p.name+', ':name!=='home'?name[0].toUpperCase()+name.slice(1)+', ':'')+'Richter Architects';
+  try{if((location.hash.replace('#','')||'home')!==name)history.replaceState(null,'','#'+name)}catch(e){}
+  if(name==='home')homeInit(); if(name==='work')workInit(); if(p)walkInit(); if(name==='recognition')drawBricks(); if(name==='contact')contactInit();
+  $$('[data-rv]',main).forEach(el=>io?io.observe(el):el.classList.add('in'));
+}
+function go(name){
+  if(busy||name===view) return;
+  if(RM){render(name);return}
+  busy=true; wipe.className='wipe in';
+  setTimeout(()=>{render(name);wipe.className='wipe out';setTimeout(()=>{wipe.className='wipe';busy=false},680)},580);
+}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(!a)return;e.preventDefault();go(a.dataset.go)});
+addEventListener('hashchange',()=>{const h=location.hash.replace('#','')||'home';if(h!==view)go(h)});
+let rw=innerWidth;
+addEventListener('resize',()=>{if(view==='home'&&(rw<821)!==(innerWidth<821))render('home');if(view==='recognition')drawBricks();rw=innerWidth});
+
+/* ---------- frame loop ---------- */
+function frame(){
+  if(pend.length){const vw=innerWidth,vh=innerHeight;pend=pend.filter(el=>{if(!el.isConnected)return false;const r=el.getBoundingClientRect();if(r.left<vw*.96&&r.right>0&&r.top<vh*.94&&r.bottom>0){el.classList.add('in');return false}return true})}
+  if(walk&&innerWidth>820){
+    if(tgt!=null){const c=walk.scrollLeft,n=c+(tgt-c)*.13;walk.scrollLeft=n;if(Math.abs(tgt-n)<.6)tgt=null}
+    const max=walk.scrollWidth-walk.clientWidth;prog.style.transform=`scaleX(${max>0?walk.scrollLeft/max:0})`;
+  }else if(view&&view!=='home'){
+    const max=document.documentElement.scrollHeight-innerHeight;prog.style.transform=`scaleX(${max>0?scrollY/max:0})`;
+  }
+  requestAnimationFrame(frame);
+}
+render(location.hash.replace('#','')||'home');
+setTimeout(()=>{wipe.className='wipe out';setTimeout(()=>wipe.className='wipe',700)},RM?0:900);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
